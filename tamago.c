@@ -1,115 +1,199 @@
 #include "tamago.h"
 
 int main() {
-	/*stdio_init_all();
-	spi_init(spi0, 10 * 1000 * 1000);
-	gpio_set_function(PICO_DEFAULT_SPI_SCK_PIN, GPIO_FUNC_SPI);
-	gpio_set_function(PICO_DEFAULT_SPI_TX_PIN, GPIO_FUNC_SPI);
 
-	gpio_init(PICO_DEFAULT_SPI_CSN_PIN);
-    gpio_set_dir(PICO_DEFAULT_SPI_CSN_PIN, GPIO_OUT);
-    gpio_put(PICO_DEFAULT_SPI_CSN_PIN, 1);
+    //OLED_1in5_test();
+	//OLED_pic();
+	OLED_canarticho();
+}
 
-	//Hardware reset
-    OLED_RST_1;
-    sleep_ms(100);
-    OLED_RST_0;
-    sleep_ms(100);
-    OLED_RST_1;
-    sleep_ms(100);
+//todo: use Paint_DrawBitMap and Paint_DrawBitMapBlock from GUI_Paint
 
-    //Set the initialization register
-    //OLED_InitReg();
-	DEV_SPI_WriteByte(0xae);//--turn off oled panel
+int OLED_pic(void)
+{
+	if(DEV_ModuleInit() != 0) {
+		return -1;
+	}
+	OLED_1in5_Init();
+	DEV_Delay_ms(500);	
 
-    DEV_SPI_WriteByte(0x15);    //   set column address
-    DEV_SPI_WriteByte(0x00);    //  start column   0
-    DEV_SPI_WriteByte(0x7f);    //  end column   127
+	// 0.Create a new image cache
+	UBYTE *BlackImage;
+	UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
+	if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
+		return -1;
+	}
 
-    DEV_SPI_WriteByte(0x75);    //   set row address
-    DEV_SPI_WriteByte(0x00);    //  start row   0
-    DEV_SPI_WriteByte(0x7f);    //  end row   127
+	Paint_NewImage(BlackImage, OLED_1in5_WIDTH, OLED_1in5_HEIGHT, 0, BLACK);	
+	Paint_SetScale(16);
+	// 1.Select Image
+	Paint_SelectImage(BlackImage);
+	DEV_Delay_ms(500);
+	Paint_Clear(BLACK);
 
-    DEV_SPI_WriteByte(0x81);  // set contrast control
-    DEV_SPI_WriteByte(0x80);
+	while (true)
+	{
+	// 2.Drawing on the image
+	Paint_DrawBitMap(can128rgb1);
 
-    DEV_SPI_WriteByte(0xa0);    // gment remap
-    DEV_SPI_WriteByte(0x51);   //51
+	// 3.Show image 
+	OLED_1in5_Display(BlackImage);
+	DEV_Delay_ms(2000);	
+	Paint_Clear(BLACK);	
 
-    DEV_SPI_WriteByte(0xa1);  // start line
-    DEV_SPI_WriteByte(0x00);
+	
+	/*Paint_DrawBitMap(test2);
+	OLED_1in5_Display(BlackImage);
+	DEV_Delay_ms(2000);	
+	Paint_Clear(BLACK);	
+	Paint_DrawBitMap(test3);
+	OLED_1in5_Display(BlackImage);
+	DEV_Delay_ms(2000);	
+	Paint_Clear(BLACK);	
+	Paint_DrawBitMap(test4);
+	OLED_1in5_Display(BlackImage);
+	DEV_Delay_ms(2000);	
+	Paint_Clear(BLACK);	*/
 
-    DEV_SPI_WriteByte(0xa2);  // display offset
-    DEV_SPI_WriteByte(0x00);
+	
 
-    DEV_SPI_WriteByte(0xa4);    // rmal display
-    DEV_SPI_WriteByte(0xa8);    // set multiplex ratio
-    DEV_SPI_WriteByte(0x7f);
+	}
 
-    DEV_SPI_WriteByte(0xb1);  // set phase leghth
-    DEV_SPI_WriteByte(0xf1);
+	
+}
 
-    DEV_SPI_WriteByte(0xb3);  // set dclk
-    DEV_SPI_WriteByte(0x00);  //80Hz:0xc1 90Hz:0xe1   100Hz:0x00   110Hz:0x30 120Hz:0x50   130Hz:0x70     01
 
-    DEV_SPI_WriteByte(0xab);  //
-    DEV_SPI_WriteByte(0x01);  //
+int OLED_canarticho(void)
+{	
+	if(DEV_ModuleInit() != 0) {
+		return -1;
+	}
+	OLED_1in5_Init();
+	DEV_Delay_ms(500);	
 
-    DEV_SPI_WriteByte(0xb6);  // set phase leghth
-    DEV_SPI_WriteByte(0x0f);
+	// 0.Create a new image cache
+	UBYTE *BlackImage;
+	UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
+	if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
+		return -1;
+	}
 
-    DEV_SPI_WriteByte(0xbe);
-    DEV_SPI_WriteByte(0x0f);
+	Paint_NewImage(BlackImage, OLED_1in5_WIDTH, OLED_1in5_HEIGHT, 0, BLACK);	
+	Paint_SetScale(16);
+	// 1.Select Image
+	Paint_SelectImage(BlackImage);
+	DEV_Delay_ms(500);
+	Paint_Clear(BLACK);
 
-    DEV_SPI_WriteByte(0xbc);
-    DEV_SPI_WriteByte(0x08);
+	while (true)
+	{
+		Paint_DrawBitMap(can128rgb1);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
 
-    DEV_SPI_WriteByte(0xd5);
-    DEV_SPI_WriteByte(0x62);
+		Paint_DrawBitMap(can128rgb2);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
 
-    DEV_SPI_WriteByte(0xfd);
-    DEV_SPI_WriteByte(0x12);
-    sleep_ms(200);
+		Paint_DrawBitMap(can128rgb3);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
 
-    //Turn on the OLED display
-	DEV_SPI_WriteByte(0xAF);
-	sleep_ms(1000*60);*/
+		Paint_DrawBitMap(can128rgb4);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
 
-    /*const uint LED_PIN = 25;
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
+		Paint_DrawBitMap(can128rgb5);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
 
-    while (true) {
-        gpio_put(LED_PIN, 1);
-        // Blink faster! (this is the only line that's modified)
-        sleep_ms(25);
-        gpio_put(LED_PIN, 0);
-        sleep_ms(250);
-    }*/
-    OLED_1in5_test();
+		Paint_DrawBitMap(can128rgb6);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
+
+		Paint_DrawBitMap(can128rgb7);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
+
+		Paint_DrawBitMap(can128rgb8);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
+
+		Paint_DrawBitMap(can128rgb9);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
+
+		Paint_DrawBitMap(can128rgb10);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
+
+		Paint_DrawBitMap(can128rgb11);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
+
+		Paint_DrawBitMap(can128rgb12);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
+
+		Paint_DrawBitMap(can128rgb13);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
+
+		Paint_DrawBitMap(can128rgb14);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
+
+		Paint_DrawBitMap(can128rgb15);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);
+
+		Paint_DrawBitMap(can128rgb16);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
+
+		Paint_DrawBitMap(can128rgb17);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);	
+
+		Paint_DrawBitMap(can128rgb18);
+		OLED_1in5_Display(BlackImage);
+		DEV_Delay_ms(100);	
+		Paint_Clear(BLACK);		
+	}
 }
 
 int OLED_1in5_test(void)
 {
-	printf("1.5inch OLED test demo\n");
 	if(DEV_ModuleInit() != 0) {
 		return -1;
 	}
-	  
-	printf("OLED Init...\r\n");
 	OLED_1in5_Init();
 	DEV_Delay_ms(500);	
 	// 0.Create a new image cache
 	UBYTE *BlackImage;
 	UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
 	if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
-			printf("Failed to apply for black memory...\r\n");
 			return -1;
 	}
-	printf("Paint_NewImage\r\n");
 	Paint_NewImage(BlackImage, OLED_1in5_WIDTH, OLED_1in5_HEIGHT, 0, BLACK);	
 	Paint_SetScale(16);
-	printf("Drawing\r\n");
 	//1.Select Image
 	Paint_SelectImage(BlackImage);
 	DEV_Delay_ms(500);
@@ -117,7 +201,6 @@ int OLED_1in5_test(void)
 	while(1) {
 		
 		// 2.Drawing on the image		
-		printf("Drawing:page 1\r\n");
 		Paint_DrawPoint(20, 10, WHITE, DOT_PIXEL_1X1, DOT_STYLE_DFT);
 		Paint_DrawPoint(30, 10, WHITE, DOT_PIXEL_2X2, DOT_STYLE_DFT);
 		Paint_DrawPoint(40, 10, WHITE, DOT_PIXEL_3X3, DOT_STYLE_DFT);
@@ -135,7 +218,6 @@ int OLED_1in5_test(void)
 		Paint_Clear(BLACK);
 
 		// Drawing on the image
-		printf("Drawing:page 2\r\n");
 		for(UBYTE i=0; i<16; i++){
 			Paint_DrawRectangle(0, 8*i, 127, 8*(i+1), i, DOT_PIXEL_1X1, DRAW_FILL_FULL);
 		}			
@@ -144,8 +226,7 @@ int OLED_1in5_test(void)
 		DEV_Delay_ms(2000);	
 		Paint_Clear(BLACK);	
 		
-		// Drawing on the image
-		printf("Drawing:page 3\r\n");			
+		// Drawing on the image			
 		Paint_DrawString_EN(10, 0, "waveshare", &Font16, 0x1, 0xb);
 		Paint_DrawString_EN(10, 17, "hello world", &Font8, 0x2, 0xc);
 		Paint_DrawNum(10, 30, 123.456789, &Font8, 4, 0x3, 0xd);
@@ -157,12 +238,14 @@ int OLED_1in5_test(void)
 			
 
 		// Drawing on the image
-		printf("Drawing:page 5\r\n");
-		GUI_ReadBmp_16Gray("./pic/1in5.bmp", 0, 0);
-		// Show image on page4
-		OLED_1in5_Display(BlackImage);
+		/*if (GUI_ReadBmp_16Gray("./pic/1in5.bmp", 0, 0) == 0)
+		{
+			// Show image on page4
+			OLED_1in5_Display(BlackImage);
+		}
+		
 		DEV_Delay_ms(2000);		
-		Paint_Clear(BLACK);	
+		Paint_Clear(BLACK);	*/
 
 		OLED_1in5_Clear();
 	}
