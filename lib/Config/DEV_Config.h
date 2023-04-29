@@ -49,6 +49,12 @@
 #define OLED_TX         19 // GPIO 19 is spi0 TX (corresponds to MOSI)
 #define OLED_CLK        18 // also called SCK, is spi0 clock
 
+#define BUZZ            14 // GPIO 14 (physical pin 19)	also PWM 7A
+
+#define LBUTT           13
+#define MBUTT           12
+#define RBUTT           11
+
 #define OLED_CS_0      DEV_Digital_Write(OLED_CS,0)
 #define OLED_CS_1      DEV_Digital_Write(OLED_CS,1)
 

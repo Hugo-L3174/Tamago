@@ -4,7 +4,9 @@ int main() {
 
     //OLED_1in5_test();
 	//OLED_pic();
-	OLED_canarticho();
+	//OLED_canarticho();
+	tama_init();
+	debug_print();
 }
 
 //todo: use Paint_DrawBitMap and Paint_DrawBitMapBlock from GUI_Paint
@@ -87,6 +89,7 @@ int OLED_canarticho(void)
 
 	while (true)
 	{
+		// TODO: optimize, maybe array of arrays and loop through it
 		Paint_DrawBitMap(can128rgb1);
 		OLED_1in5_Display(BlackImage);
 		DEV_Delay_ms(100);	
@@ -177,6 +180,42 @@ int OLED_canarticho(void)
 		DEV_Delay_ms(100);	
 		Paint_Clear(BLACK);		
 	}
+}
+
+int tama_init(void)
+{
+	//enter name
+	int time = get_absolute_time();
+	srand(time);
+	tama.type = rand() % (species_nb - 1); 
+}
+
+int debug_print(void)
+{
+	if(DEV_ModuleInit() != 0) {
+		return -1;
+	}
+	OLED_1in5_Init();
+	DEV_Delay_ms(500);	
+
+	// 0.Create a new image cache
+	UBYTE *BlackImage;
+	UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
+	if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
+		return -1;
+	}
+
+	Paint_NewImage(BlackImage, OLED_1in5_WIDTH, OLED_1in5_HEIGHT, 0, BLACK);	
+	Paint_SetScale(16);
+	// 1.Select Image
+	Paint_SelectImage(BlackImage);
+	DEV_Delay_ms(500);
+	Paint_Clear(BLACK);
+
+	Paint_DrawNum(10, 0, tama.type, &Font16, 4, 0x1, 0xb);
+	OLED_1in5_Display(BlackImage);
+
+
 }
 
 int OLED_1in5_test(void)
