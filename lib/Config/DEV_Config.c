@@ -72,12 +72,21 @@ void DEV_Delay_ms(UDOUBLE xms)
 
 static void DEV_GPIO_Init(void)
 {
-    DEV_GPIO_Mode(OLED_CS, 1);
-    DEV_GPIO_Mode(OLED_RST, 1);
-    DEV_GPIO_Mode(OLED_DC, 1);
+    // Init oled pins
+    DEV_GPIO_Mode(OLED_CS, GPIO_OUT);
+    DEV_GPIO_Mode(OLED_RST, GPIO_OUT);
+    DEV_GPIO_Mode(OLED_DC, GPIO_OUT);
 
-	DEV_Digital_Write(OLED_CS, 1);
-    DEV_Digital_Write(OLED_DC, 0);
+	DEV_Digital_Write(OLED_CS, GPIO_OUT);
+    DEV_Digital_Write(OLED_DC, GPIO_IN);
+
+    // Init buttons pins
+    DEV_GPIO_Mode(LBUTT, GPIO_IN);
+    gpio_pull_down(LBUTT);
+    DEV_GPIO_Mode(MBUTT, GPIO_IN);
+    gpio_pull_down(MBUTT);
+    DEV_GPIO_Mode(RBUTT, GPIO_IN);
+    gpio_pull_down(RBUTT);
 }
 
 /******************************************************************************

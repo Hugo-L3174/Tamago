@@ -2,22 +2,29 @@
 
 int main() {
 
-    //OLED_1in5_test();
-	//OLED_pic();
-	//OLED_canarticho();
+	// Initialize pins and oled screen
+	if(DEV_ModuleInit() != 0) {
+		return -1;
+	}
+	OLED_1in5_Init();
+	DEV_Delay_ms(500);	
+
+	// Initialize pet variables
 	tama_init();
-	debug_print();
+
+	// Main loop
+
+	// debug_print();
+    //OLED_1in5_test();
+	// OLED_pic();
+	OLED_canarticho();
+	
 }
 
 //todo: use Paint_DrawBitMap and Paint_DrawBitMapBlock from GUI_Paint
 
 int OLED_pic(void)
 {
-	if(DEV_ModuleInit() != 0) {
-		return -1;
-	}
-	OLED_1in5_Init();
-	DEV_Delay_ms(500);	
 
 	// 0.Create a new image cache
 	UBYTE *BlackImage;
@@ -67,11 +74,6 @@ int OLED_pic(void)
 
 int OLED_canarticho(void)
 {	
-	if(DEV_ModuleInit() != 0) {
-		return -1;
-	}
-	OLED_1in5_Init();
-	DEV_Delay_ms(500);	
 
 	// 0.Create a new image cache
 	UBYTE *BlackImage;
@@ -87,116 +89,50 @@ int OLED_canarticho(void)
 	DEV_Delay_ms(500);
 	Paint_Clear(BLACK);
 
+	int frameIndex = 0;
+
 	while (true)
 	{
 		// TODO: optimize, maybe array of arrays and loop through it
-		Paint_DrawBitMap(can128rgb1);
+		Paint_DrawBitMap(c4nar[frameIndex]);
 		OLED_1in5_Display(BlackImage);
 		DEV_Delay_ms(100);	
 		Paint_Clear(BLACK);	
 
-		Paint_DrawBitMap(can128rgb2);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
+		if (gpio_get(RBUTT) && frameIndex < 16)
+		{
+			frameIndex++;
+		}
+		else if (gpio_get(RBUTT) && frameIndex == 16)
+		{
+			frameIndex = 0;
+		}
+		else if (gpio_get(LBUTT) && frameIndex > 0)
+		{
+			frameIndex--;
+		}
+		else if (gpio_get(LBUTT) && frameIndex == 0)
+		{
+			frameIndex = 16;
+		}
+		
 
-		Paint_DrawBitMap(can128rgb3);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb4);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb5);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb6);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb7);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb8);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb9);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb10);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb11);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb12);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb13);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb14);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb15);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);
-
-		Paint_DrawBitMap(can128rgb16);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb17);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		Paint_DrawBitMap(can128rgb18);
-		OLED_1in5_Display(BlackImage);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);		
 	}
 }
 
 int tama_init(void)
 {
-	//enter name
+	// initialize random species
 	int time = get_absolute_time();
 	srand(time);
 	tama.type = rand() % (species_nb - 1); 
+
+	// from the species, create the image loop of the tama pet?
+
 }
 
 int debug_print(void)
 {
-	if(DEV_ModuleInit() != 0) {
-		return -1;
-	}
-	OLED_1in5_Init();
-	DEV_Delay_ms(500);	
 
 	// 0.Create a new image cache
 	UBYTE *BlackImage;
@@ -212,19 +148,34 @@ int debug_print(void)
 	DEV_Delay_ms(500);
 	Paint_Clear(BLACK);
 
-	Paint_DrawNum(10, 0, tama.type, &Font16, 4, 0x1, 0xb);
-	OLED_1in5_Display(BlackImage);
+	// Paint_DrawNum(10, 0, tama.type, &Font16, 4, 0x1, 0xb);
+	// OLED_1in5_Display(BlackImage);
+	while (true)
+	{	
+		if (gpio_get(RBUTT))
+		{
+			Paint_DrawString_EN(10, 0, "right", &Font16, 0x1, 0xb);
+		}
+		if (gpio_get(MBUTT))
+		{
+			Paint_DrawString_EN(10, 0, "middle", &Font16, 0x1, 0xb);
+		}
+		if (gpio_get(LBUTT))
+		{
+			Paint_DrawString_EN(10, 0, "left", &Font16, 0x1, 0xb);
+		}
+		
+		OLED_1in5_Display(BlackImage);
+		sleep_ms(250);
+		Paint_Clear(BLACK);
+	}
+	
 
 
 }
 
 int OLED_1in5_test(void)
 {
-	if(DEV_ModuleInit() != 0) {
-		return -1;
-	}
-	OLED_1in5_Init();
-	DEV_Delay_ms(500);	
 	// 0.Create a new image cache
 	UBYTE *BlackImage;
 	UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;

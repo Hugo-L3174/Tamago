@@ -51,7 +51,7 @@
 
 #define BUZZ            14 // GPIO 14 (physical pin 19)	also PWM 7A
 
-#define LBUTT           13
+#define LBUTT           13 // GPIO 13 (physical pin 17)
 #define MBUTT           12
 #define RBUTT           11
 
