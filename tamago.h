@@ -12,6 +12,8 @@
 #include "lib/Fonts/fonts.h"
 // #include "Debug.h"
 
+#include "lib/Buzzer/Buzz.h"
+// #include "lib/Buzzer/Buzz.c"
 
 #include "pic/C4Nar/c1.h"
 /*#include "pic/C4Nar/c2.h"
@@ -41,6 +43,7 @@ int OLED_pic(void);
 int OLED_canarticho(void);
 
 int buttonTest(void);
+int buzzTest(void);
 
 int tama_init(void);
 int enter_name(void);

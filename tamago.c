@@ -17,7 +17,8 @@ int main() {
 	// debug_print();
     //OLED_1in5_test();
 	// OLED_pic();
-	OLED_canarticho();
+	// OLED_canarticho();
+	buzzTest();
 	
 }
 
@@ -129,6 +130,24 @@ int tama_init(void)
 
 	// from the species, create the image loop of the tama pet?
 
+}
+
+
+int buzzTest(void)
+{
+	note_timer_struct noteTimer;
+	// Find out which PWM slice is connected to GPIO 0 (it's slice 0)
+    uint  slice_num = pwm_gpio_to_slice_num(BUZZ);
+	noteTimer.slice_num = slice_num;
+
+
+	// play_melody(&noteTimer, HappyBirday,140);
+    // // wait until is done
+    // while(!noteTimer.Done);
+
+	play_melody(&noteTimer, HarryPotter,144);
+    // wait until is done
+    while(!noteTimer.Done);
 }
 
 int debug_print(void)

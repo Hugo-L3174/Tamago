@@ -1,99 +1,4 @@
 #include "Buzz.h"
-#include "stdio.h"
-
-#include "pico/stdlib.h"
-#include "pico/time.h"
-#include "hardware/pwm.h"
-
-
-typedef struct{
-  unsigned short frequency;
-  short  duration;
-} note_struct;
-
-note_struct HappyBirday[]={
-    { NOTE_C4,4 },
-    { NOTE_C4,8 },
-    { NOTE_D4,-4},
-    { NOTE_C4,-4},
-    { NOTE_F4,-4},
-    { NOTE_E4,-2},
-    { NOTE_C4,4},
-    {NOTE_C4,8},
-    {NOTE_D4,-4},
-    {NOTE_C4,-4},
-    {NOTE_G4,-4},
-    {NOTE_F4,-2},
-    {NOTE_C4,4},
-    {NOTE_C4,8},
-    {NOTE_C5,-4},
-    {NOTE_A4,-4},
-    {NOTE_F4,-4},
-    {NOTE_E4,-4},
-    {NOTE_D4,-4},
-    {NOTE_AS4,4},
-    {NOTE_AS4,8},
-    {NOTE_A4,-4},
-    {NOTE_F4,-4},
-    {NOTE_G4,-4},
-    {NOTE_F4,-2},
-    {REST,0}
-};
-
-note_struct HarryPotter[]={
- // Hedwig's theme fromn the Harry Potter Movies
-  // Socre from https://musescore.com/user/3811306/scores/4906610
-
-  { REST, 2}, { NOTE_D4, 4},{ NOTE_G4, -4}, { NOTE_AS4, 8}, { NOTE_A4, 4},
-  { NOTE_G4, 2}, { NOTE_D5, 4},{ NOTE_C5, -2}, { NOTE_A4, -2},
-  { NOTE_G4, -4}, { NOTE_AS4, 8}, { NOTE_A4, 4},
-  { NOTE_F4, 2}, { NOTE_GS4, 4},
-  { NOTE_D4, -1}, { NOTE_D4, 4},
-
-  { NOTE_G4, -4}, { NOTE_AS4, 8}, { NOTE_A4, 4},
-  { NOTE_G4, 2}, { NOTE_D5, 4},
-  { NOTE_F5, 2}, { NOTE_E5, 4},
-  { NOTE_DS5, 2}, { NOTE_B4, 4},
-  { NOTE_DS5, -4}, { NOTE_D5, 8}, { NOTE_CS5, 4},
-  { NOTE_CS4, 2}, { NOTE_B4, 4},
-  { NOTE_G4, -1},
-  { NOTE_AS4, 4},
-
-  { NOTE_D5, 2}, { NOTE_AS4, 4},
-  { NOTE_D5, 2}, { NOTE_AS4, 4},
-  { NOTE_DS5, 2}, { NOTE_D5, 4},
-  { NOTE_CS5, 2}, { NOTE_A4, 4},
-  { NOTE_AS4, -4}, { NOTE_D5, 8}, { NOTE_CS5, 4},
-  { NOTE_CS4, 2}, { NOTE_D4, 4},
-  { NOTE_D5, -1},
-  {REST,4}, { NOTE_AS4,4},
-
-  { NOTE_D5, 2}, { NOTE_AS4, 4},
-  { NOTE_D5, 2}, { NOTE_AS4, 4},
-  { NOTE_F5, 2}, { NOTE_E5, 4},
-  { NOTE_DS5, 2}, { NOTE_B4, 4},
-  { NOTE_DS5, -4}, { NOTE_D5, 8}, { NOTE_CS5, 4},
-  { NOTE_CS4, 2}, { NOTE_AS4, 4},
-  { NOTE_G4, -1}
-};
-
-// timer declaration  First timer for note, second for spacing
-typedef struct{
-  uint slice_num;
-  note_struct *pt;
-  uint delayOFF;
-  uint wholenote;
-  uint tempo;
-  volatile uint Done;
-} note_timer_struct;
-
-
-int64_t timer_note_callback(alarm_id_t id, void *user_data);
-
-
-
-
-
 
 static inline void pwm_calcDivTop(pwm_config *c,int frequency,int sysClock)
 {
@@ -104,8 +9,6 @@ static inline void pwm_calcDivTop(pwm_config *c,int frequency,int sysClock)
   c->div = div;
   c->top = count / div;
 }
-
-
 
 
 uint playTone(note_timer_struct *ntTimer)
@@ -132,7 +35,6 @@ uint playTone(note_timer_struct *ntTimer)
   ntTimer->delayOFF = duration;
   return duration;
 }
-
 
 
 int64_t timer_note_callback(alarm_id_t id, void *user_data)
@@ -168,8 +70,6 @@ int64_t timer_note_callback(alarm_id_t id, void *user_data)
 }
 
 
-
-
 int play_melody(note_timer_struct *ntTimer, note_struct * melody, int tempo)
 {
 
@@ -183,38 +83,3 @@ int play_melody(note_timer_struct *ntTimer, note_struct * melody, int tempo)
       return add_alarm_in_us(1000,timer_note_callback,ntTimer,false);
 }
 
-
-
-
-int main() {
-
-    stdio_init_all();
-
-    note_timer_struct noteTimer;
-
-    // Tell GPIO 2
-    gpio_set_function(2, GPIO_FUNC_PWM);
-
-    // Find out which PWM slice is connected to GPIO 0 (it's slice 0)
-    uint  slice_num = pwm_gpio_to_slice_num(2);
-
-    noteTimer.slice_num= slice_num;
-
-
-    while(true)
-        {
-
-          play_melody(&noteTimer, HappyBirday,140);
-
-          // wait until is done
-          while(!noteTimer.Done);
-
-          play_melody(&noteTimer, HarryPotter,144);
-
-          // wait until is done
-          while(!noteTimer.Done);
-
-
-        }
-
-}

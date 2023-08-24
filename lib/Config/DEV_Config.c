@@ -87,6 +87,9 @@ static void DEV_GPIO_Init(void)
     gpio_pull_down(MBUTT);
     DEV_GPIO_Mode(RBUTT, GPIO_IN);
     gpio_pull_down(RBUTT);
+
+    // Init buzzer pin
+    // DEV_GPIO_Mode(BUZZ, GPIO_OUT);
 }
 
 /******************************************************************************
@@ -101,6 +104,7 @@ UBYTE DEV_ModuleInit(void)
     spi_init(spi0, 10000*1000); // Baudrate set to 48kHz
     gpio_set_function(OLED_CLK, GPIO_FUNC_SPI);
     gpio_set_function(OLED_TX, GPIO_FUNC_SPI);
+    gpio_set_function(BUZZ, GPIO_FUNC_PWM);
     return 0;
 }
 
