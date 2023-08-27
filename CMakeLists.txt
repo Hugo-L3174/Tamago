@@ -19,6 +19,7 @@ add_library(Tama STATIC
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font20.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font24.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Buzzer/Buzz.c
+    ${CMAKE_CURRENT_LIST_DIR}/lib/UPS/Pico_UPS.c
 )
 
 target_include_directories(Tama PUBLIC
@@ -27,9 +28,10 @@ target_include_directories(Tama PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/
     ${CMAKE_CURRENT_LIST_DIR}/lib/Buzzer/
+    ${CMAKE_CURRENT_LIST_DIR}/lib/UPS/
 )
 
-target_link_libraries(Tama pico_stdlib hardware_spi hardware_pwm)
+target_link_libraries(Tama pico_stdlib hardware_spi hardware_pwm hardware_i2c)
 
 
 add_executable(tamago
