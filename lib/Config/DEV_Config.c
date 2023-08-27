@@ -88,8 +88,10 @@ static void DEV_GPIO_Init(void)
     DEV_GPIO_Mode(RBUTT, GPIO_IN);
     gpio_pull_down(RBUTT);
 
-    // Init buzzer pin
-    // DEV_GPIO_Mode(BUZZ, GPIO_OUT);
+    // Init battery monitoring pins
+    gpio_pull_up(BATT_SDA);
+    gpio_pull_up(BATT_SDL);
+    
 }
 
 /******************************************************************************
@@ -105,6 +107,10 @@ UBYTE DEV_ModuleInit(void)
     gpio_set_function(OLED_CLK, GPIO_FUNC_SPI);
     gpio_set_function(OLED_TX, GPIO_FUNC_SPI);
     gpio_set_function(BUZZ, GPIO_FUNC_PWM);
+
+    i2c_init(i2c1, 400 * 1000);
+    gpio_set_function(BATT_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(BATT_SDL, GPIO_FUNC_I2C);
     return 0;
 }
 

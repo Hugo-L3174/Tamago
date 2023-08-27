@@ -21,6 +21,7 @@
 #include "pico/time.h"
 #include "hardware/spi.h"
 #include "hardware/gpio.h"
+#include "hardware/i2c.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -54,6 +55,9 @@
 #define LBUTT           13 // GPIO 13 (physical pin 17)
 #define MBUTT           12
 #define RBUTT           11
+
+#define BATT_SDA        6  // GPIO 6 (physical 9)
+#define BATT_SDL        7  // GPIO 7 (physical 10)
 
 #define OLED_CS_0      DEV_Digital_Write(OLED_CS,0)
 #define OLED_CS_1      DEV_Digital_Write(OLED_CS,1)
