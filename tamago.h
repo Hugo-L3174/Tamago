@@ -15,6 +15,8 @@
 #include "lib/Buzzer/Buzz.h"
 // #include "lib/Buzzer/Buzz.c"
 
+#include "lib/UPS/Pico_UPS.h"
+
 #include "pic/C4Nar/c1.h"
 /*#include "pic/C4Nar/c2.h"
 #include "pic/C4Nar/c3.h"
@@ -42,13 +44,14 @@ int OLED_pic(void);
 
 int OLED_canarticho(void);
 
-int buttonTest(void);
 int buzzTest(void);
 
 int tama_init(void);
 int enter_name(void);
 
 int debug_print(void);
+
+int debug_battery(void);
 
 int screen_init(void); // if I want to use this I need the image object to be global
 

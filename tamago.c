@@ -2,7 +2,7 @@
 
 int main() {
 
-	// Initialize pins and oled screen
+	// Initialize pins, oled screen (spi) and battery (i2c)
 	if(DEV_ModuleInit() != 0) {
 		return -1;
 	}
@@ -18,7 +18,8 @@ int main() {
     //OLED_1in5_test();
 	// OLED_pic();
 	// OLED_canarticho();
-	buzzTest();
+	// buzzTest();
+	debug_battery();
 	
 }
 
@@ -148,6 +149,61 @@ int buzzTest(void)
 	play_melody(&noteTimer, HarryPotter,144);
     // wait until is done
     while(!noteTimer.Done);
+}
+
+
+int debug_battery(void)
+{
+	UBYTE *BlackImage;
+	UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
+	if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
+		return -1;
+	}
+
+	Paint_NewImage(BlackImage, OLED_1in5_WIDTH, OLED_1in5_HEIGHT, 0, BLACK);	
+	Paint_SetScale(16);
+	// 1.Select Image
+	Paint_SelectImage(BlackImage);
+	DEV_Delay_ms(500);
+	Paint_Clear(BLACK);
+
+	float bus_voltage = 0;
+	float shunt_voltage = 0;
+	float power = 0;
+	float current = 0;
+	float P=0;
+	uint16_t value;
+
+	setCalibration_32V_2A();
+	double testnb = -765.25;
+
+	while (true)
+	{	
+		
+		bus_voltage = getBusVoltage_V();         // voltage on V- (load side)
+		current = getCurrent_mA()/1000;               // current in mA
+		P = (bus_voltage -3)/1.2*100;
+
+		if(P<0)
+		{
+			P=0;
+		}
+		else if (P>100)
+		{
+			P=100;
+		}
+
+		Paint_DrawNum(10, 0, bus_voltage, &Font12, 3, 0x1, 0xb);
+		// not working because wrong function when negative numbers
+		Paint_DrawNum(10, 15, current, &Font12, 3, 0x1, 0xb);
+		Paint_DrawNum(10, 30, P, &Font12, 1, 0x1, 0xb);
+		Paint_DrawNum(10, 45, testnb, &Font12, 3, 0x1, 0xb);
+		
+		
+		OLED_1in5_Display(BlackImage);
+		sleep_ms(1000);
+		Paint_Clear(BLACK);
+	}
 }
 
 int debug_print(void)
