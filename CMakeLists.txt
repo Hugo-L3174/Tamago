@@ -12,7 +12,6 @@ add_library(Tama STATIC
     ${CMAKE_CURRENT_LIST_DIR}/lib/Config/DEV_Config.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/OLED/OLED_1in5.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/GUI_Paint.c
-    ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/GUI_BMPfile.c 
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font8.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font12.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font16.c
@@ -38,12 +37,12 @@ add_executable(tamago
     tamago.c 
 )
 
-target_include_directories(tamago PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/lib/Config/
-    ${CMAKE_CURRENT_LIST_DIR}/lib/OLED/
-    ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/
-    # ${CMAKE_CURRENT_LIST_DIR}/lib/Buzzer/
-)
+# target_include_directories(tamago PUBLIC
+#     ${CMAKE_CURRENT_LIST_DIR}/lib/Config/
+#     ${CMAKE_CURRENT_LIST_DIR}/lib/OLED/
+#     ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/
+#     # ${CMAKE_CURRENT_LIST_DIR}/lib/Buzzer/
+# )
 
 # Add pico_stdlib library which aggregates commonly used features
 target_link_libraries(tamago pico_stdlib hardware_spi hardware_pwm Tama)

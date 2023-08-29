@@ -73,6 +73,11 @@
 UBYTE DEV_ModuleInit(void);
 void  DEV_ModuleExit(void);
 
+UBYTE Init_OLED(void);
+UBYTE Init_Buttons(void);
+UBYTE Init_Buzzer(void);
+UBYTE Init_Battery(void);
+
 void DEV_GPIO_Mode(UWORD Pin, UWORD Mode);
 void DEV_Digital_Write(UWORD Pin, UBYTE Value);
 UBYTE DEV_Digital_Read(UWORD Pin);

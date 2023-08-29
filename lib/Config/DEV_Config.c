@@ -94,6 +94,54 @@ static void DEV_GPIO_Init(void)
     
 }
 
+UBYTE Init_OLED()
+{
+    // Init oled pins
+    DEV_GPIO_Mode(OLED_CS, GPIO_OUT);
+    DEV_GPIO_Mode(OLED_RST, GPIO_OUT);
+    DEV_GPIO_Mode(OLED_DC, GPIO_OUT);
+
+	DEV_Digital_Write(OLED_CS, GPIO_OUT);
+    DEV_Digital_Write(OLED_DC, GPIO_IN);
+
+    // Init spi
+    spi_init(spi0, 10000*1000); // Baudrate set to 48kHz
+    gpio_set_function(OLED_CLK, GPIO_FUNC_SPI);
+    gpio_set_function(OLED_TX, GPIO_FUNC_SPI);
+    return 0;
+}
+
+UBYTE Init_Buttons()
+{
+    // Init buttons pins
+    DEV_GPIO_Mode(LBUTT, GPIO_IN);
+    gpio_pull_down(LBUTT);
+    DEV_GPIO_Mode(MBUTT, GPIO_IN);
+    gpio_pull_down(MBUTT);
+    DEV_GPIO_Mode(RBUTT, GPIO_IN);
+    gpio_pull_down(RBUTT);
+    return 0;
+}
+
+UBYTE Init_Buzzer()
+{
+    gpio_set_function(BUZZ, GPIO_FUNC_PWM);
+    return 0;
+}
+
+UBYTE Init_Battery()
+{
+    // Init battery monitoring pins
+    gpio_pull_up(BATT_SDA);
+    gpio_pull_up(BATT_SDL);
+
+    // Init i2c for it
+    i2c_init(i2c1, 400 * 1000);
+    gpio_set_function(BATT_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(BATT_SDL, GPIO_FUNC_I2C);
+    return 0;
+}
+
 /******************************************************************************
 function:	Module Initialize, the library and initialize the pins, SPI protocol
 parameter:
