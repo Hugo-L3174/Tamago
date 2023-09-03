@@ -18,23 +18,10 @@
 #include "lib/UPS/Pico_UPS.h"
 
 #include "pic/C4Nar/c1.h"
-/*#include "pic/C4Nar/c2.h"
-#include "pic/C4Nar/c3.h"
-#include "pic/C4Nar/c4.h"
-#include "pic/C4Nar/c5.h"
-#include "pic/C4Nar/c6.h"
-#include "pic/C4Nar/c7.h"
-#include "pic/C4Nar/c8.h"
-#include "pic/C4Nar/c9.h"
-#include "pic/C4Nar/c10.h"
-#include "pic/C4Nar/c11.h"
-#include "pic/C4Nar/c12.h"
-#include "pic/C4Nar/c13.h"
-#include "pic/C4Nar/c14.h"
-#include "pic/C4Nar/c15.h"
-#include "pic/C4Nar/c16.h"
-#include "pic/C4Nar/c17.h"
-#include "pic/C4Nar/c18.h"*/
+#include "pic/C4Nar/farfetchd.h"
+#include "pic/pokemon.h"
+#include "pic/C4Nar/farfetchd_gen3.h"
+
 
 #include <stdlib.h>
 #include <math.h>
@@ -52,6 +39,8 @@ int enter_name(void);
 int debug_print(void);
 
 int debug_battery(void);
+
+int debug_images(void);
 
 int screen_init(void); // if I want to use this I need the image object to be global
 

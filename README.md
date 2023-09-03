@@ -17,3 +17,12 @@ It depends on the [pico sdk](https://github.com/raspberrypi/pico-sdk/) sublinked
    make
    ```
  3. `tamago.elf` can be loaded via a debugger, or `tamago.uf2` can be dragged and dropped holding bootsel button when plugging the pico
+
+# Images to display
+
+  1. To get the source files to display they must first be converted to a 4 bits color scale (16 colors) bmp (using gimp: Image > Mode > Indexed)
+
+  2. Then convert the images to header files using the very efficient [bmp2src](https://github.com/cbm80amiga/bmp2src/) and convert using
+    ```
+    bmp2src image.bmp > image.h
+    ```

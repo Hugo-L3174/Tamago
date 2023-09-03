@@ -2,12 +2,28 @@
 
 int main() {
 
+	stdio_init_all();
 	// Initialize pins, oled screen (spi) and battery (i2c)
-	if(DEV_ModuleInit() != 0) {
+	if(Init_OLED() != 0) {
 		return -1;
 	}
+
+	// if(Init_Battery() != 0) {
+	// 	return -1;
+	// }
+
+	// if(Init_Buttons() != 0) {
+	// 	return -1;
+	// }
+
+	// if(Init_Buzzer() != 0) {
+	// 	return -1;
+	// }
+
 	OLED_1in5_Init();
-	DEV_Delay_ms(500);	
+	DEV_Delay_ms(500);
+
+		
 
 	// Initialize pet variables
 	tama_init();
@@ -15,11 +31,13 @@ int main() {
 	// Main loop
 
 	// debug_print();
-    //OLED_1in5_test();
+    // OLED_1in5_test();
 	// OLED_pic();
 	// OLED_canarticho();
 	// buzzTest();
-	debug_battery();
+	// debug_battery();
+	
+	debug_images();
 	
 }
 
@@ -245,6 +263,42 @@ int debug_print(void)
 		Paint_Clear(BLACK);
 	}
 	
+
+
+}
+
+
+int debug_images(void)
+{
+
+	// 0.Create a new image cache
+	UBYTE *BlackImage;
+	UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
+	if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) { //No enough memory
+      return -1;
+  	}
+  	// Paint_NewImage(BlackImage, OLED_1in5_WIDTH/4, OLED_1in5_HEIGHT/2, 0, BLACK);
+	Paint_NewImage(BlackImage, OLED_1in5_WIDTH, OLED_1in5_HEIGHT, 0, BLACK);  
+	// UWORD Imagesize = 128*128;
+	// if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
+	// 	return -1;
+	// }
+
+	// Paint_NewImage(BlackImage, 128, 128, 0, BLACK);
+
+	Paint_SetScale(16); // this is setting 16 bit color greyscale (1.5 oled)
+	// 1.Select Image
+	Paint_SelectImage(BlackImage);
+	DEV_Delay_ms(500);
+	Paint_Clear(BLACK);
+
+	OLED_1in5_Display(BlackImage);
+
+
+	// OLED_1in5_Display(pokemon);
+
+	// OLED_1in5_Display_Part(farfetchd, 0,0,56,56);
+	OLED_1in5_Display_Part(farfetchd_gen3, 0,0,64,64);
 
 
 }
