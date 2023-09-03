@@ -103,9 +103,12 @@ void Paint_NewImage(UBYTE *image, UWORD Width, UWORD Height, UWORD Rotate, UWORD
 
     Paint.WidthMemory = Width;
     Paint.HeightMemory = Height;
-    Paint.Color = Color;    
+    Paint.Color = Color; 
+
+    // by default 2 bits color   
 	Paint.Scale = 2;
-		
+
+    // by default width byte for 2 bits color	
     Paint.WidthByte = (Width % 8 == 0)? (Width / 8 ): (Width / 8 + 1);
     Paint.HeightByte = Height;    
 //    printf("WidthByte = %d, HeightByte = %d\r\n", Paint.WidthByte, Paint.HeightByte);
@@ -259,7 +262,7 @@ void Paint_SetPixel(UWORD Xpoint, UWORD Ypoint, UWORD Color)
     }else if(Paint.Scale == 16) {
         UDOUBLE Addr = X / 2 + Y * Paint.WidthByte;
         UBYTE Rdata = Paint.Image[Addr];
-        Color = Color % 16;
+        Color = Color % 16; // color scale divided in 16
         Rdata = Rdata & (~(0xf0 >> ((X % 2)*4)));
         Paint.Image[Addr] = Rdata | ((Color << 4) >> ((X % 2)*4));
     }else if(Paint.Scale == 65) {
@@ -714,7 +717,7 @@ void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char * pString, cFONT
 }
 
 /******************************************************************************
-function:	Display nummber
+function:	Display number
 parameter:
     Xstart           ：X coordinate
     Ystart           : Y coordinate
@@ -725,13 +728,13 @@ parameter:
     Color_Background : Select the background color
 ******************************************************************************/
 #define  ARRAY_LEN 255
-void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint, double Nummber,
+void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint, double Number,
                    sFONT* Font, UWORD Digit,UWORD Color_Foreground, UWORD Color_Background)
 {
     int16_t Num_Bit = 0, Str_Bit = 0;
     uint8_t Str_Array[ARRAY_LEN] = {0}, Num_Array[ARRAY_LEN] = {0};
     uint8_t *pStr = Str_Array;
-	int temp = Nummber;
+	int temp = Number;
 	float decimals;
 	uint8_t i;
     if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
@@ -740,7 +743,7 @@ void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint, double Nummber,
     }
 
 	if(Digit > 0) {		
-		decimals = Nummber - temp;
+        decimals = Number - temp;
 		for(i=Digit; i > 0; i--) {
 			decimals*=10;
 		}
@@ -755,7 +758,7 @@ void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint, double Nummber,
 		Num_Bit++;
 	}
 
-	temp = Nummber;
+	temp = Number;
     //Converts a number to a string
     while (temp) {
         Num_Array[Num_Bit] = temp % 10 + '0';
@@ -773,6 +776,54 @@ void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint, double Nummber,
     //show
     Paint_DrawString_EN(Xpoint, Ypoint, (const char*)pStr, Font, Color_Background, Color_Foreground);
 }
+
+// void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint,const char * Number,
+//                 sFONT* Font, UWORD Digit,UWORD Color_Foreground, UWORD Color_Background)
+// { 
+//     uint8_t Str_Array[ARRAY_LEN] = {0};
+//     uint8_t *pStr = Str_Array;
+//     uint8_t i, len = 0;
+//     int16_t arr[3] = {0, 0, 0};
+//     int16_t *p = arr;
+//     if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
+//         Debug("Paint_DisNum Input exceeds the normal display range\r\n");
+//         return;
+//     }
+
+//     while(Number[len] != '\0') {  
+//       len++;                                    //get total length
+//       (*p)++;                                   //get the integer part length 
+//       if(Number[len] == '.') {
+//         arr[2] = 1;
+//         arr[0]--;
+//         p++;               //get fractional part length
+//       }
+//     }
+
+//     if(Digit > 0) {    
+//       if(Digit <= arr[1]) {                     
+//         for(i=0; i<=len-(arr[1]-Digit); i++)      //cut some Number
+//           Str_Array[i] = Number[i];
+//       }
+//       else {
+//         for(i=0; i<=len+Digit-arr[1]; i++) {
+//           if(i == len && arr[2] == 0)
+//             Str_Array[i] = '.';
+//           else if(i >= len)                           //add '0'
+//             Str_Array[i] = '0';
+//           else
+//             Str_Array[i] = Number[i];
+//         }
+//       }
+//     }
+//     else
+//       for(i=0; i<=len-arr[1]-arr[2]; i++) {
+//         Str_Array[i] = Number[i];
+//         }
+  
+//     //show
+//     Paint_DrawString_EN(Xpoint, Ypoint, (const char*)pStr, Font, Color_Background, Color_Foreground);
+// }
 
 /******************************************************************************
 function:	Display time
@@ -801,6 +852,66 @@ void Paint_DrawTime(UWORD Xstart, UWORD Ystart, PAINT_TIME *pTime, sFONT* Font,
     Paint_DrawChar(Xstart + Dx * 5                  , Ystart, value[pTime->Sec / 10] , Font, Color_Background, Color_Foreground);
     Paint_DrawChar(Xstart + Dx * 6                  , Ystart, value[pTime->Sec % 10] , Font, Color_Background, Color_Foreground);
 }
+
+
+
+/******************************************************************************
+function:	Display image
+parameter:
+    image            ：Image start address
+    xStart           : X starting coordinates
+    yStart           : Y starting coordinates
+    xEnd             ：Image width
+    yEnd             : Image height
+******************************************************************************/
+void Paint_DrawImage(const unsigned char *image_buffer, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image) 
+{
+    UWORD x, y;
+	UWORD w_byte=(W_Image%8)?(W_Image/8)+1:W_Image/8;
+    UDOUBLE Addr = 0;
+	UDOUBLE pAddr = 0;
+    for (y = 0; y < H_Image; y++) {
+        for (x = 0; x < w_byte; x++) {//8 pixel =  1 byte
+            Addr = x + y * w_byte;
+			pAddr=x+(xStart/8)+((y+yStart)*Paint.WidthByte);
+            Paint.Image[pAddr] = (unsigned char)image_buffer[Addr];
+        }
+    }
+}
+
+// void Paint_DrawImage(const unsigned char *image, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image) 
+// {
+//     int i,j; 
+// 		for(j = 0; j < H_Image; j++){
+// 			for(i = 0; i < W_Image; i++){
+//                 Paint_SetPixel(xStart + i, yStart + j, WHITE);
+// 				// if(xStart+i < Paint.WidthMemory  &&  yStart+j < Paint.HeightMemory)//Exceeded part does not display
+//                 // {
+//                 //     // Paint_SetPixel(xStart + i, yStart + j, (*(image + j*W_Image*2 + i*2+1))<<8 | (*(image + j*H_Image*2 + i*2))); 
+//                 //     Paint_SetPixel(xStart + i, yStart + j, WHITE);
+//                 // }
+					
+// 				//Using arrays is a property of sequential storage, accessing the original array by algorithm
+// 				//j*W_Image*2 			   Y offset
+// 				//i*2              	   X offset
+// 			}
+// 		} 
+// }
+
+void Paint_DrawImage1(const unsigned char *image, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image) 
+{
+    int i,j; 
+		for(j = 0; j < H_Image; j++){
+			for(i = 0; i < W_Image; i++){
+				if(xStart+i < Paint.HeightMemory  &&  yStart+j < Paint.WidthMemory)//Exceeded part does not display
+					Paint_SetPixel(xStart + i, yStart + j, (*(image + j*W_Image*2 + i*2+1))<<8 | (*(image + j*W_Image*2 + i*2)));
+				//Using arrays is a property of sequential storage, accessing the original array by algorithm
+				//j*W_Image*2 			   Y offset
+				//i*2              	   X offset
+			}
+		} 
+}
+
 
 /******************************************************************************
 function:	Display monochrome bitmap
