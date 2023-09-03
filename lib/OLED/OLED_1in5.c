@@ -108,7 +108,7 @@ static void OLED_InitReg(void)
     OLED_WriteReg(0xf1);
 
     OLED_WriteReg(0xb3);  // set dclk
-    OLED_WriteReg(0x00);  //80Hz:0xc1 90Hz:0xe1   100Hz:0x00   110Hz:0x30 120Hz:0x50   130Hz:0x70     01
+    OLED_WriteReg(0xe1);  //80Hz:0xc1 90Hz:0xe1   100Hz:0x00   110Hz:0x30 120Hz:0x50   130Hz:0x70     01
 
     OLED_WriteReg(0xab);  //
     OLED_WriteReg(0x01);  //
@@ -195,6 +195,19 @@ void OLED_1in5_Display(UBYTE *Image)
         for(j=0; j<OLED_1in5_WIDTH/2; j++)
         {
             temp = Image[j + i*64];
+            OLED_WriteData(temp);
+        }
+}
+
+
+void OLED_1in5_Display_Part(UBYTE *Image, UBYTE Xstart, UBYTE Ystart, UBYTE Xend, UBYTE Yend)
+{
+    UWORD i, j, temp;
+    OLED_SetWindow(Xstart, Ystart, Xend, Yend);
+    for(i=0; i<Yend-Ystart; i++)
+        for(j=0; j<(Xend-Xstart)/2; j++)
+        {
+            temp = Image[j + i*(Xend-Xstart)/2];
             OLED_WriteData(temp);
         }
 }

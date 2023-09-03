@@ -45,6 +45,7 @@ function:
 void OLED_1in5_Init(void);
 void OLED_1in5_Clear(void);
 void OLED_1in5_Display(UBYTE *Image);
+void OLED_1in5_Display_Part(UBYTE *Image, UBYTE Xstart, UBYTE Ystart, UBYTE Xend, UBYTE Yend);
 static void OLED_Reset(void);
 static void OLED_WriteReg(uint8_t Reg);
 static void OLED_WriteData(uint8_t Data);
