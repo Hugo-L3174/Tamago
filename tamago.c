@@ -298,7 +298,13 @@ int debug_images(void)
 	// OLED_1in5_Display(pokemon);
 
 	// OLED_1in5_Display_Part(farfetchd, 0,0,56,56);
-	OLED_1in5_Display_Part(farfetchd_gen3, 0,0,64,64);
+	// OLED_1in5_Display_Part(farfetchd_gen3, 0,30,64,94);
+	Paint_SetRotate(180);
+	Paint_DrawImage(farfetchd_gen3, 0, 30, 64, 64);
+	OLED_1in5_Display(BlackImage);
+	Paint_SetRotate(0);
+	Paint_DrawImage(farfetchd_gen3, 64, 30, 64, 64);
+	OLED_1in5_Display(BlackImage);
 
 
 }
