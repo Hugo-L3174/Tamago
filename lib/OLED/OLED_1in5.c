@@ -202,12 +202,23 @@ void OLED_1in5_Display(UBYTE *Image)
 
 void OLED_1in5_Display_Part(UBYTE *Image, UBYTE Xstart, UBYTE Ystart, UBYTE Xend, UBYTE Yend)
 {
-    UWORD i, j, temp;
+    //this function is still not working for xstart /=0
+    UWORD x, y, temp;
+    // screen is addressed using 1 byte for 1 pixel in height and 1 byte for 2 pixels in width
+    // this means we need to divide width by 2 in address
+    UWORD imgWidth = Xend-Xstart;
+    UWORD widthByte = ((Xend-Xstart)%2==0) ? ((Xend-Xstart)/2) : ((Xend-Xstart)/2+1); 
+    UWORD imgHeight = Yend - Ystart;
+    UWORD heightByte = Yend - Ystart;
+
+    UWORD XstartOffset = (Xstart%2==0) ? (Xstart/2) : (Xstart/2+1);
+    UWORD YstartOffset = Ystart;
+    
     OLED_SetWindow(Xstart, Ystart, Xend, Yend);
-    for(i=0; i<Yend-Ystart; i++)
-        for(j=0; j<(Xend-Xstart)/2; j++)
+    for(y=0; y<Yend-Ystart; y++)
+        for(x=0; x < widthByte; x++)
         {
-            temp = Image[j + i*(Xend-Xstart)/2];
+            temp = Image[x + y*widthByte]; //(XstartOffset + YstartOffset*widthByte) +
             OLED_WriteData(temp);
         }
 }
