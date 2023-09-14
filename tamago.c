@@ -1,121 +1,86 @@
 #include "tamago.h"
 
-int main() {
-
+int hardware_setup()
+{
 	stdio_init_all();
-	// Initialize pins, oled screen (spi) and battery (i2c)
+
 	if(Init_OLED() != 0) {
 		return -1;
 	}
+	OLED_1in5_Init();
+	// clearing the screen right after turning it on
+	OLED_1in5_Clear();
 
 	// if(Init_Battery() != 0) {
 	// 	return -1;
 	// }
 
-	// if(Init_Buttons() != 0) {
-	// 	return -1;
-	// }
+	if(Init_Buttons() != 0) {
+		return -1;
+	}
 
 	// if(Init_Buzzer() != 0) {
 	// 	return -1;
 	// }
 
-	OLED_1in5_Init();
 	DEV_Delay_ms(500);
+	return 0;
+}
 
-		
+int image_init()
+{
+	// memory allocation for screen image buffer
+	if((ScreenImage = (UBYTE *)malloc(ScreenSize)) == NULL) {
+		return -1;
+	}
 
-	// Initialize pet variables
+	// init buffer params
+	Paint_NewImage(ScreenImage, OLED_1in5_WIDTH, OLED_1in5_HEIGHT, 0, BLACK);
+	// set scale for 4 bits 16 colors greyscale
+	Paint_SetScale(16);
+	// reset buffer
+	Paint_Clear(BLACK);
+	// send buffer to oled screen to print
+	// here: not needed since we used the OLED_1in5_Clear() in hardware init
+	// OLED_1in5_Display(ScreenImage); 
+
+}
+
+
+int main() {
+
+	if(hardware_setup() != 0) {
+		return -1;
+	}
+	image_init();
 	tama_init();
 
 	// Main loop
 
-	// debug_print();
-    // OLED_1in5_test();
-	// OLED_pic();
+	// debug_buttons();
+
 	// OLED_canarticho();
 	// buzzTest();
 	// debug_battery();
 	
-	debug_images();
-	
-}
-
-//todo: use Paint_DrawBitMap and Paint_DrawBitMapBlock from GUI_Paint
-
-int OLED_pic(void)
-{
-
-	// 0.Create a new image cache
-	UBYTE *BlackImage;
-	UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
-	if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
-		return -1;
-	}
-
-	Paint_NewImage(BlackImage, OLED_1in5_WIDTH, OLED_1in5_HEIGHT, 0, BLACK);	
-	Paint_SetScale(16);
-	// 1.Select Image
-	Paint_SelectImage(BlackImage);
-	DEV_Delay_ms(500);
-	Paint_Clear(BLACK);
-
-	while (true)
-	{
-	// 2.Drawing on the image
-	Paint_DrawBitMap(can128rgb1);
-
-	// 3.Show image 
-	OLED_1in5_Display(BlackImage);
-	DEV_Delay_ms(2000);	
-	Paint_Clear(BLACK);	
-
-	
-	/*Paint_DrawBitMap(test2);
-	OLED_1in5_Display(BlackImage);
-	DEV_Delay_ms(2000);	
-	Paint_Clear(BLACK);	
-	Paint_DrawBitMap(test3);
-	OLED_1in5_Display(BlackImage);
-	DEV_Delay_ms(2000);	
-	Paint_Clear(BLACK);	
-	Paint_DrawBitMap(test4);
-	OLED_1in5_Display(BlackImage);
-	DEV_Delay_ms(2000);	
-	Paint_Clear(BLACK);	*/
-
-	
-
-	}
-
+	// debug_images();
+	debug_overlay();
 	
 }
 
 
 int OLED_canarticho(void)
 {	
-
-	// 0.Create a new image cache
-	UBYTE *BlackImage;
-	UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
-	if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
-		return -1;
-	}
-
-	Paint_NewImage(BlackImage, OLED_1in5_WIDTH, OLED_1in5_HEIGHT, 0, BLACK);	
-	Paint_SetScale(16);
-	// 1.Select Image
-	Paint_SelectImage(BlackImage);
-	DEV_Delay_ms(500);
+	Paint_SelectImage(ScreenImage);
+	DEV_Delay_ms(50);
 	Paint_Clear(BLACK);
 
 	int frameIndex = 0;
 
 	while (true)
 	{
-		// TODO: optimize, maybe array of arrays and loop through it
 		Paint_DrawBitMap(c4nar[frameIndex]);
-		OLED_1in5_Display(BlackImage);
+		OLED_1in5_Display(ScreenImage);
 		DEV_Delay_ms(100);	
 		Paint_Clear(BLACK);	
 
@@ -146,7 +111,6 @@ int tama_init(void)
 	int time = get_absolute_time();
 	srand(time);
 	tama.type = rand() % (species_nb - 1); 
-
 	// from the species, create the image loop of the tama pet?
 
 }
@@ -156,7 +120,7 @@ int buzzTest(void)
 {
 	note_timer_struct noteTimer;
 	// Find out which PWM slice is connected to GPIO 0 (it's slice 0)
-    uint  slice_num = pwm_gpio_to_slice_num(BUZZ);
+    uint slice_num = pwm_gpio_to_slice_num(BUZZ);
 	noteTimer.slice_num = slice_num;
 
 
@@ -172,17 +136,9 @@ int buzzTest(void)
 
 int debug_battery(void)
 {
-	UBYTE *BlackImage;
-	UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
-	if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
-		return -1;
-	}
-
-	Paint_NewImage(BlackImage, OLED_1in5_WIDTH, OLED_1in5_HEIGHT, 0, BLACK);	
-	Paint_SetScale(16);
-	// 1.Select Image
-	Paint_SelectImage(BlackImage);
-	DEV_Delay_ms(500);
+	// Select ScreenImage to be sure
+	Paint_SelectImage(ScreenImage);
+	DEV_Delay_ms(50);
 	Paint_Clear(BLACK);
 
 	float bus_voltage = 0;
@@ -218,26 +174,15 @@ int debug_battery(void)
 		Paint_DrawNum(10, 45, testnb, &Font12, 3, 0x1, 0xb);
 		
 		
-		OLED_1in5_Display(BlackImage);
+		OLED_1in5_Display(ScreenImage);
 		sleep_ms(1000);
 		Paint_Clear(BLACK);
 	}
 }
 
-int debug_print(void)
+int debug_buttons(void)
 {
-
-	// 0.Create a new image cache
-	UBYTE *BlackImage;
-	UWORD Imagesize = ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT;
-	if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
-		return -1;
-	}
-
-	Paint_NewImage(BlackImage, OLED_1in5_WIDTH, OLED_1in5_HEIGHT, 0, BLACK);	
-	Paint_SetScale(16);
-	// 1.Select Image
-	Paint_SelectImage(BlackImage);
+	Paint_SelectImage(ScreenImage);
 	DEV_Delay_ms(500);
 	Paint_Clear(BLACK);
 
@@ -258,15 +203,23 @@ int debug_print(void)
 			Paint_DrawString_EN(10, 0, "left", &Font16, 0x1, 0xb);
 		}
 		
-		OLED_1in5_Display(BlackImage);
+		OLED_1in5_Display(ScreenImage);
 		sleep_ms(250);
 		Paint_Clear(BLACK);
 	}
-	
-
 
 }
 
+int debug_overlay(void)
+{
+	Paint_Clear(BLACK);
+	OLED_1in5_Display(ScreenImage);
+
+	Paint_DrawRectangle(0, 0, 127, 20, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+	Paint_DrawRectangle(0, 108, 127, 127, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+	OLED_1in5_Display(ScreenImage);
+
+}
 
 int debug_images(void)
 {
@@ -299,11 +252,11 @@ int debug_images(void)
 
 	// OLED_1in5_Display_Part(farfetchd, 0,0,56,56);
 	// OLED_1in5_Display_Part(farfetchd_gen3, 0,30,64,94);
-	Paint_SetRotate(180);
-	Paint_DrawImage(farfetchd_gen3, 0, 30, 64, 64);
-	OLED_1in5_Display(BlackImage);
-	Paint_SetRotate(0);
-	Paint_DrawImage(farfetchd_gen3, 64, 30, 64, 64);
+	
+	Paint_DrawImage(farfetchd_gen3, 0, 0, 64, 64);
+	Paint_DrawImage(farfetchd_gen3, 64, 0, 64, 64);
+	Paint_DrawImage(farfetchd_gen3, 0, 64, 64, 64);
+	Paint_DrawImage(farfetchd_gen3, 64, 64, 64, 64);
 	OLED_1in5_Display(BlackImage);
 
 
@@ -376,10 +329,7 @@ int OLED_1in5_test(void)
 	}
 }
 
-
-// Add right oled lib
 // Add IR lib?
-// Add buttons
 // Add sprites
 
 /* Game logic: beginning

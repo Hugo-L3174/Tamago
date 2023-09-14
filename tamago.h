@@ -3,6 +3,7 @@
 #include "pico/binary_info.h"
 #include "hardware/spi.h"
 #include "pico/time.h"
+// include multicore lib
 
 
 #include "lib/Config/DEV_Config.h"
@@ -27,22 +28,27 @@
 #include <math.h>
 
 int OLED_1in5_test(void);
-int OLED_pic(void);
 
 int OLED_canarticho(void);
 
 int buzzTest(void);
 
+int hardware_setup(void); 
+
+// Initialize pet variables
 int tama_init(void);
 int enter_name(void);
 
-int debug_print(void);
+int debug_buttons(void);
 
 int debug_battery(void);
 
 int debug_images(void);
 
-int screen_init(void); // if I want to use this I need the image object to be global
+int debug_overlay(void);
+
+// Initialize mem allocation for image buffer and reset it to black
+int image_init(void);
 
 
 
@@ -66,5 +72,10 @@ kreatur tama = {"zero", 0, 0, 0, 10, 10, 0};
 const unsigned char *c4nar[18] = {can128rgb1, can128rgb2, can128rgb3, can128rgb4, can128rgb5, can128rgb6, can128rgb7, can128rgb8, can128rgb9,
                                     can128rgb10, can128rgb11, can128rgb13, can128rgb14, can128rgb15, can128rgb16, can128rgb17, can128rgb18};
 
+UBYTE *ScreenImage;
+
+//previously ((OLED_1in5_WIDTH%2==0)? (OLED_1in5_WIDTH/2): (OLED_1in5_WIDTH/2+1)) * OLED_1in5_HEIGHT
+// width divided by 2 because 1 address addresses 2 pixels on x axis
+UWORD ScreenSize = (OLED_1in5_WIDTH/2) * OLED_1in5_HEIGHT ;
 
 
