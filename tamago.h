@@ -78,4 +78,6 @@ UBYTE *ScreenImage;
 // width divided by 2 because 1 address addresses 2 pixels on x axis
 UWORD ScreenSize = (OLED_1in5_WIDTH/2) * OLED_1in5_HEIGHT ;
 
+enum menu {zero, infos, c, d, e, f, g, h, i};
 
+enum menu cursor = zero;

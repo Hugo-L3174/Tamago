@@ -65,6 +65,7 @@ int main() {
 	
 	// debug_images();
 	debug_overlay();
+
 	
 }
 
@@ -204,7 +205,6 @@ int debug_buttons(void)
 		}
 		
 		OLED_1in5_Display(ScreenImage);
-		sleep_ms(250);
 		Paint_Clear(BLACK);
 	}
 
@@ -212,12 +212,88 @@ int debug_buttons(void)
 
 int debug_overlay(void)
 {
-	Paint_Clear(BLACK);
-	OLED_1in5_Display(ScreenImage);
+	Paint_SelectImage(ScreenImage);
 
-	Paint_DrawRectangle(0, 0, 127, 20, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-	Paint_DrawRectangle(0, 108, 127, 127, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-	OLED_1in5_Display(ScreenImage);
+	while (true)
+	{
+		if (gpio_get(RBUTT) && cursor < 8)
+		{
+			cursor++;
+		}
+		else if (gpio_get(RBUTT) && cursor == 8)
+		{
+			cursor = zero;
+		}
+		else if (gpio_get(LBUTT) && cursor > 0)
+		{
+			cursor--;
+		}
+		else if (gpio_get(LBUTT) && cursor == 0)
+		{
+			cursor = i;
+		}
+
+		// clearing overlay
+		Paint_DrawRectangle(1, 1, 128, 21, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+		Paint_DrawRectangle(1, 108, 128, 128, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+		
+
+		// we divide top and bottom in 4 each
+		// screen is 128 --> 32 for each icon, starting at 0, 32, 64, 98
+		// for debug, chars with font20: 14*20 so to be in middle start at 9, 41, 75, 107
+		// /!\ bug probably coming from the way rectangles are drawn: drawChar and drawRectangle both use 1-128 instead of 0-127, + seems to be a border of 1pixl ?
+		// --> todo: find a better way to clear and draw than rectangles, probably for{}+setPixel
+		switch (cursor)
+		{
+		case zero:
+			break;
+		case infos:
+			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawChar(9, 107, 'b', &Font20, 0xe, 0x3);
+			break;
+		case c:
+			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawChar(41, 107, 'c', &Font20, 0xe, 0x3);
+			break;
+		case d:
+			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawChar(75, 107, 'd', &Font20, 0xe, 0x3);
+			break;
+		case e:
+			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawChar(107, 107, 'e', &Font20, 0xe, 0x3);
+			break;
+		case f:
+			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawChar(9, 0, 'f', &Font20, 0xe, 0x3);
+			break;
+		case g:
+			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawChar(41, 0, 'g', &Font20, 0xe, 0x3);
+			break;
+		case h:
+			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawChar(75, 0, 'h', &Font20, 0xe, 0x3);
+			break;
+		case i:
+			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawChar(107, 0, 'i', &Font20, 0xe, 0x3);
+			break;
+
+		}
+
+		OLED_1in5_Display(ScreenImage);
+		sleep_ms(100);
+	}
+	
 
 }
 
