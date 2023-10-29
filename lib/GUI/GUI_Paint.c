@@ -162,6 +162,9 @@ void Paint_SetScale(UBYTE scale)
     }else if(scale ==16) {
         Paint.Scale = scale;
         Paint.WidthByte = (Paint.WidthMemory%2==0) ? (Paint.WidthMemory/2) : (Paint.WidthMemory/2+1); 
+    // }else if(scale ==256) {
+    //     Paint.Scale = scale;
+    //     Paint.WidthByte = Paint.WidthMemory;
     }else if(scale ==65) {
         Paint.Scale = scale;
         Paint.WidthByte = Paint.WidthMemory*2; 
@@ -867,16 +870,30 @@ parameter:
 void Paint_DrawImage(const unsigned char *image_buffer, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image) 
 {
     UWORD x, y;
+    int screenWidthBytes = 64;
+    int imageWidthBytes = (W_Image%2==0)?(W_Image/2):W_Image/2+1; 
+    int imageHeightBytes = H_Image;
 	// UWORD w_byte=(W_Image%8)?(W_Image/8)+1:W_Image/8; //this is for 1 bit scaling
     UWORD w_byte=(W_Image%2==0)?(W_Image/2):W_Image/2+1; //this is for 4bits scaling
+    // UWORD w_byte=W_Image; //this is for 8bits scaling
     UDOUBLE Addr = 0;
 	UDOUBLE pAddr = 0;
     for (y = 0; y < H_Image; y++) {
-        for (x = 0; x < w_byte; x++) {//8 pixel =  1 byte
-            Addr = x + y * w_byte;
-			pAddr=x+(xStart/2)+((y+yStart)*Paint.WidthByte);
-            Paint.Image[pAddr] = (unsigned char)image_buffer[Addr];
+        for (x = 0; x < w_byte; x++) { // w_byte is number of bytes in the image width
+         Addr = x + y * w_byte; // address of the pixel in the char array
+			pAddr=x+(xStart/2)+((y+yStart)*screenWidthBytes); // address of the pixel on the screen (widthbyte depends on the screen itself, has to be 64)
+         Paint.Image[pAddr] = (unsigned char)image_buffer[Addr];
         }
+        // for (x = 0; x < w_byte; x++) {
+        //     Addr = x + y * w_byte ; // address of the pixel in the char array (dependant of image scale)
+		// 	pAddr= (xStart/2 + yStart*screenWidthBytes)+(x/2 + y*imageHeightBytes ); // address of the pixel on the screen (widthbyte depends on the screen itself, has to be 64)
+        //     Paint.Image[pAddr] = (unsigned char)image_buffer[Addr];
+        // }
+        // for (x = 0; x < W_Image; x++) {
+        //     Addr = x + y * w_byte ; // address of the pixel in the char array (dependant of image scale)
+		// 	pAddr= (xStart/2+x) + yStart*screenWidthBytes + y*imageHeightBytes; // address of the pixel on the screen (widthbyte depends on the screen itself, has to be 64)
+        //     Paint.Image[pAddr] = (unsigned char)image_buffer[Addr];
+        // }
     }
 }
 
@@ -889,7 +906,7 @@ void Paint_DrawImage(const unsigned char *image_buffer, UWORD xStart, UWORD ySta
 // 				// if(xStart+i < Paint.WidthMemory  &&  yStart+j < Paint.HeightMemory)//Exceeded part does not display
 //                 // {
 //                 //     // Paint_SetPixel(xStart + i, yStart + j, (*(image + j*W_Image*2 + i*2+1))<<8 | (*(image + j*H_Image*2 + i*2))); 
-//                 //     Paint_SetPixel(xStart + i, yStart + j, WHITE);
+                    // Paint_SetPixel(xStart + i, yStart + j, WHITE);
 //                 // }
 					
 // 				//Using arrays is a property of sequential storage, accessing the original array by algorithm

@@ -108,7 +108,7 @@ static void OLED_InitReg(void)
     OLED_WriteReg(0xf1);
 
     OLED_WriteReg(0xb3);  // set dclk
-    OLED_WriteReg(0xe1);  //80Hz:0xc1 90Hz:0xe1   100Hz:0x00   110Hz:0x30 120Hz:0x50   130Hz:0x70     01
+    OLED_WriteReg(0xc1);  //80Hz:0xc1 90Hz:0xe1   100Hz:0x00   110Hz:0x30 120Hz:0x50   130Hz:0x70     01
 
     OLED_WriteReg(0xab);  //
     OLED_WriteReg(0x01);  //
@@ -189,12 +189,12 @@ function:   Update all memory to OLED
 ********************************************************************************/
 void OLED_1in5_Display(UBYTE *Image)
 {
-    UWORD i, j, temp;
+    UWORD x, y, temp;
     OLED_SetWindow(0, 0, 128, 128);
-    for(i=0; i<OLED_1in5_HEIGHT; i++)
-        for(j=0; j<OLED_1in5_WIDTH/2; j++)
+    for(y=0; y<OLED_1in5_HEIGHT; y++)
+        for(x=0; x<OLED_1in5_WIDTH/2; x++)
         {
-            temp = Image[j + i*64];
+            temp = Image[x + y*64]; // writing data for desired pixel, adress is bc Xcoordinate + Ycoord*screen width (rows completed)
             OLED_WriteData(temp);
         }
 }

@@ -11,6 +11,7 @@ It depends on the [pico sdk](https://github.com/raspberrypi/pico-sdk/) sublinked
    ```
  2. Usual build instructions
    ```
+   git submodule update --init
    mkdir build
    cd build
    cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo

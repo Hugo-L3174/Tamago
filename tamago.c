@@ -3,25 +3,32 @@
 int hardware_setup()
 {
 	stdio_init_all();
-
+	#ifdef SCREEN
 	if(Init_OLED() != 0) {
 		return -1;
 	}
 	OLED_1in5_Init();
 	// clearing the screen right after turning it on
 	OLED_1in5_Clear();
+	#endif
 
-	// if(Init_Battery() != 0) {
-	// 	return -1;
-	// }
+	#ifdef BATTERY
+	if(Init_Battery() != 0) {
+		return -1;
+	}
+	#endif
 
+	#ifdef BUTTONS
 	if(Init_Buttons() != 0) {
 		return -1;
 	}
+	#endif
 
-	// if(Init_Buzzer() != 0) {
-	// 	return -1;
-	// }
+	#ifdef BUZZER
+	if(Init_Buzzer() != 0) {
+		return -1;
+	}
+	#endif
 
 	DEV_Delay_ms(500);
 	return 0;
@@ -46,7 +53,7 @@ int image_init()
 
 }
 
-
+// This is the main loop for core 0
 int main() {
 
 	if(hardware_setup() != 0) {
@@ -66,6 +73,10 @@ int main() {
 	// debug_images();
 	debug_overlay();
 
+}
+
+int game_loop()
+{
 	
 }
 
@@ -109,9 +120,9 @@ int OLED_canarticho(void)
 int tama_init(void)
 {
 	// initialize random species
-	int time = get_absolute_time();
+	int time = time_us_32(); //get_absolute_time();
 	srand(time);
-	tama.type = rand() % (species_nb - 1); 
+	tama_.type = rand() % (species_nb - 1); 
 	// from the species, create the image loop of the tama pet?
 
 }
@@ -213,6 +224,11 @@ int debug_buttons(void)
 int debug_overlay(void)
 {
 	Paint_SelectImage(ScreenImage);
+	add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMove);
+
+	Paint_DrawImage(monky2, tama_.sprite.xOrig, tama_.sprite.yOrig, 64, 64);
+	// Paint_DrawImage(farfetchd_gen3, 64, 40, 64, 64);
+	//Paint_DrawImage(test, 64, 40, 1, 1);
 
 	while (true)
 	{
@@ -236,6 +252,14 @@ int debug_overlay(void)
 		// clearing overlay
 		Paint_DrawRectangle(1, 1, 128, 21, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
 		Paint_DrawRectangle(1, 108, 128, 128, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+
+		// update sprite if position changed
+		if (spriteToUpdate_)
+		{
+			Paint_DrawRectangle(1, 21, 128, 107, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+			Paint_DrawImage(monky2, tama_.sprite.xOrig, tama_.sprite.yOrig, 64, 64);
+		}
+		
 		
 
 		// we divide top and bottom in 4 each

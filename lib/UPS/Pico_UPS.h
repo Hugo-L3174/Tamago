@@ -1,3 +1,6 @@
+#ifndef __PICO_UPS_H
+#define __PICO_UPS_H	
+
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
@@ -117,15 +120,15 @@ void wireReadRegister(uint8_t reg, uint16_t *value);
 
 
 // uint8_t ina219_i2caddr = INA219_ADDRESS;
-uint8_t ina219_i2caddr;
-uint32_t ina219_calValue;
+extern uint8_t ina219_i2caddr;
+extern uint32_t ina219_calValue;
 // The following multipliers are used to convert raw current and power
 // values to mA and mW, taking into account the current config settings
 // uint32_t ina219_currentDivider_mA = 0;
 // float ina219_powerMultiplier_mW = 0.0f;
 
-uint32_t ina219_currentDivider_mA;
-float ina219_powerMultiplier_mW;
+extern uint32_t ina219_currentDivider_mA;
+extern float ina219_powerMultiplier_mW;
 
 
-
+#endif
