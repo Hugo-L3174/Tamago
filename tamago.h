@@ -71,22 +71,20 @@ int timers_test(void);
 enum species {canar, evangelion, tamago, calcifer, navet, howl, laputarob, dqslime}; 
 int species_nb = 8;
 
-typedef struct sprite
-{
+typedef struct{
     int xOrig;
     int yOrig;
     bool goingRight;
-};
+} sprite;
 
-typedef struct kreatur
-{
+typedef struct{
     char name[20];
-    int hunger; // Sould go up as tama becomes hungry
+    volatile int hunger; // Sould go up as tama becomes hungry
     int sick;   // Same
     int age;
     int happiness;
     int iq;
-    struct sprite sprite;
+    volatile sprite sprite;
     enum species type;
 
 } kreatur;

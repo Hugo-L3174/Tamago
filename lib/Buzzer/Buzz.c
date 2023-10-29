@@ -16,7 +16,7 @@ uint playTone(note_timer_struct *ntTimer)
   int duration;
   pwm_config cfg = pwm_get_default_config();
 
-  note_struct * note = ntTimer->pt;
+  const note_struct * note = ntTimer->pt;
   duration = note->duration;
   if(duration == 0) return 0;
   if(duration>0)
@@ -40,7 +40,7 @@ uint playTone(note_timer_struct *ntTimer)
 int64_t timer_note_callback(alarm_id_t id, void *user_data)
 {
   note_timer_struct *ntTimer = (note_timer_struct *) user_data;
-  note_struct * note = ntTimer->pt;
+  const note_struct * note = ntTimer->pt;
   if(note->duration == 0)
      {
       ntTimer->Done=true;
@@ -70,7 +70,7 @@ int64_t timer_note_callback(alarm_id_t id, void *user_data)
 }
 
 
-int play_melody(note_timer_struct *ntTimer, note_struct * melody, int tempo)
+int play_melody(note_timer_struct *ntTimer, const note_struct * melody, int tempo)
 {
 
       ntTimer->Done = false;

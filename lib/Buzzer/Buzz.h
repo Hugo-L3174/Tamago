@@ -106,7 +106,7 @@ typedef struct{
 } note_struct;
 
 
-static const note_struct HappyBirday[]={
+static const note_struct HappyBirthday[]={
     { NOTE_C4,4 },
     { NOTE_C4,8 },
     { NOTE_D4,-4},
@@ -136,8 +136,8 @@ static const note_struct HappyBirday[]={
 };
 
 static const note_struct HarryPotter[]={
- // Hedwig's theme fromn the Harry Potter Movies
-  // Socre from https://musescore.com/user/3811306/scores/4906610
+ // Hedwig's theme from the Harry Potter Movies
+  // Score from https://musescore.com/user/3811306/scores/4906610
 
   { REST, 2}, { NOTE_D4, 4},{ NOTE_G4, -4}, { NOTE_AS4, 8}, { NOTE_A4, 4},
   { NOTE_G4, 2}, { NOTE_D5, 4},{ NOTE_C5, -2}, { NOTE_A4, -2},
@@ -175,7 +175,7 @@ static const note_struct HarryPotter[]={
 // timer declaration  First timer for note, second for spacing
 typedef struct{
   uint slice_num;
-  note_struct *pt;
+  const note_struct *pt;
   uint delayOFF;
   uint wholenote;
   uint tempo;
@@ -186,4 +186,4 @@ typedef struct{
 int64_t timer_note_callback(alarm_id_t id, void *user_data);
 static inline void pwm_calcDivTop(pwm_config *c,int frequency,int sysClock);
 uint playTone(note_timer_struct *ntTimer);
-int play_melody(note_timer_struct *ntTimer, note_struct * melody, int tempo);
+int play_melody(note_timer_struct *ntTimer, const note_struct * melody, int tempo);
