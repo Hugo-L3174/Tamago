@@ -870,31 +870,43 @@ parameter:
 void Paint_DrawImage(const unsigned char *image_buffer, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image) 
 {
     UWORD x, y;
-    int screenWidthBytes = 64;
-    int imageWidthBytes = (W_Image%2==0)?(W_Image/2):W_Image/2+1; 
-    int imageHeightBytes = H_Image;
-	// UWORD w_byte=(W_Image%8)?(W_Image/8)+1:W_Image/8; //this is for 1 bit scaling
-    UWORD w_byte=(W_Image%2==0)?(W_Image/2):W_Image/2+1; //this is for 4bits scaling
+    const UWORD screenWidthBytes = 64;
+    UWORD imageWidthBytes = (W_Image%2==0)?(W_Image/2):W_Image/2+1; // 4bits scaling : W_Image/2
+    UWORD imageHeightBytes = H_Image;
+	// UWORD w_byte=(W_Image%8)?(W_Image/8)+1:W_Image/8; // this is for 1 bit scaling
+    // UWORD w_byte = (W_Image%2==0)?(W_Image/2):W_Image/2+1; 
     // UWORD w_byte=W_Image; //this is for 8bits scaling
     UDOUBLE Addr = 0;
 	UDOUBLE pAddr = 0;
+
+    UBYTE screenMask = 0;
+    UBYTE imageMask = 0;
+    UBYTE imageShift;
+    UBYTE screenShift;
     for (y = 0; y < H_Image; y++) {
-        for (x = 0; x < w_byte; x++) { // w_byte is number of bytes in the image width
-         Addr = x + y * w_byte; // address of the pixel in the char array
-			pAddr=x+(xStart/2)+((y+yStart)*screenWidthBytes); // address of the pixel on the screen (widthbyte depends on the screen itself, has to be 64)
-         Paint.Image[pAddr] = (unsigned char)image_buffer[Addr];
+        for (x = 0; x < W_Image; x++) { // going through every pixel
+            // pixel selection in image adress
+            imageShift = (x % 2)*4; // shift 0 if even, 4 if odd 
+            imageMask = 0xf0 >> imageShift; // mask is 0xf0 if even, 0x0f if odd (1st half of char or 2nd half)
+            // pixel selection in screen adress
+            screenShift = (x % 2)*4;
+            screenMask = 0xf0 >> screenShift;
+            // full adresses 
+            Addr = x/2 + y * imageWidthBytes; // address of the char that has the desired pixel in the char array
+			pAddr = (xStart/2 +yStart*screenWidthBytes) + (x/2 + y * screenWidthBytes); // screen adress where to put the desired pixel
+            // getting right pixel in byte in screen memory and in image data
+            UBYTE imageByte = image_buffer[Addr];
+            UBYTE screenByte = Paint.Image[pAddr];
+            // selecting image pixel
+            imageByte = imageByte & imageMask;
+            // clearing corresponding screen pixel then replace it by the desired image pixel then writing in the memory
+            Paint.Image[pAddr] = (screenByte & ~screenMask) | imageByte;
         }
-        // for (x = 0; x < w_byte; x++) {
-        //     Addr = x + y * w_byte ; // address of the pixel in the char array (dependant of image scale)
-		// 	pAddr= (xStart/2 + yStart*screenWidthBytes)+(x/2 + y*imageHeightBytes ); // address of the pixel on the screen (widthbyte depends on the screen itself, has to be 64)
-        //     Paint.Image[pAddr] = (unsigned char)image_buffer[Addr];
-        // }
-        // for (x = 0; x < W_Image; x++) {
-        //     Addr = x + y * w_byte ; // address of the pixel in the char array (dependant of image scale)
-		// 	pAddr= (xStart/2+x) + yStart*screenWidthBytes + y*imageHeightBytes; // address of the pixel on the screen (widthbyte depends on the screen itself, has to be 64)
-        //     Paint.Image[pAddr] = (unsigned char)image_buffer[Addr];
-        // }
     }
+    // Cas offset pair + taille image impaire
+
+    // Cas offset impair + taille image paire
+    // Cas offset impair + taille image impaire
 }
 
 // void Paint_DrawImage(const unsigned char *image, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image) 
