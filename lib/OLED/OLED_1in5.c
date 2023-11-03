@@ -1,33 +1,3 @@
-/*****************************************************************************
-* | File      	:   OLED_1in5.c
-* | Author      :   Waveshare team
-* | Function    :   1.5inch OLED Module Drive function
-* | Info        :
-*----------------
-* |	This version:   V2.0
-* | Date        :   2020-08-15
-* | Info        :
-* -----------------------------------------------------------------------------
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documnetation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to  whom the Software is
-# furished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS OR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-#
-******************************************************************************/
 #include "OLED_1in5.h"
 #include "stdio.h"
 
@@ -78,21 +48,21 @@ function:
 *******************************************************************************/
 static void OLED_InitReg(void)
 {
-    OLED_WriteReg(0xae);//--turn off oled panel
+    OLED_WriteReg(0xae);  // turn off oled panel
 
-    OLED_WriteReg(0x15);    //   set column address
-    OLED_WriteReg(0x00);    //  start column   0
-    OLED_WriteReg(0x7f);    //  end column   127
+    OLED_WriteReg(0x15);  // set column address
+    OLED_WriteReg(0x00);  // start column   0
+    OLED_WriteReg(0x7f);  // end column   127
 
-    OLED_WriteReg(0x75);    //   set row address
-    OLED_WriteReg(0x00);    //  start row   0
-    OLED_WriteReg(0x7f);    //  end row   127
+    OLED_WriteReg(0x75);  // set row address
+    OLED_WriteReg(0x00);  // start row   0
+    OLED_WriteReg(0x7f);  // end row   127
 
     OLED_WriteReg(0x81);  // set contrast control
-    OLED_WriteReg(0x80);
+    OLED_WriteReg(0xff);  // 0x80 by default, the higher the contrast val the lower the brightness and saturation
 
-    OLED_WriteReg(0xa0);    // gment remap
-    OLED_WriteReg(0x51);   //51
+    OLED_WriteReg(0xa0);  // segment remap
+    OLED_WriteReg(0x51);  // 51 (see doc parameters)
 
     OLED_WriteReg(0xa1);  // start line
     OLED_WriteReg(0x00);
@@ -100,33 +70,40 @@ static void OLED_InitReg(void)
     OLED_WriteReg(0xa2);  // display offset
     OLED_WriteReg(0x00);
 
-    OLED_WriteReg(0xa4);    // rmal display
-    OLED_WriteReg(0xa8);    // set multiplex ratio
+    OLED_WriteReg(0xa4);  // normal display mode (options are normal: a4, all on: a5, all off: a6, negative/inverted: a7)
+
+    OLED_WriteReg(0xa8);  // set multiplex ratio
     OLED_WriteReg(0x7f);
 
-    OLED_WriteReg(0xb1);  // set phase leghth
-    OLED_WriteReg(0xf1);
+    OLED_WriteReg(0xb1);  // set phase length of display phase 1 (discharge of capacitance to reset pixel) and phase 2 (pre charge of capacitors)
+    OLED_WriteReg(0xf1);  // first 4 bits are display phase 1, last 4 are display phase 2
 
-    OLED_WriteReg(0xb3);  // set dclk
-    OLED_WriteReg(0xc1);  //80Hz:0xc1 90Hz:0xe1   100Hz:0x00   110Hz:0x30 120Hz:0x50   130Hz:0x70     01
+    OLED_WriteReg(0xb6);  // set phase length of display phase 3 (second pre charge of pixel: speed of charging process)
+    OLED_WriteReg(0x0f);  
 
-    OLED_WriteReg(0xab);  //
-    OLED_WriteReg(0x01);  //
+    // here we could set reg 0xb8/b9 to set gamma setting (pulse width)
+    // higher value means wider pulse width so brighter pixels
+    // there are 16 presets of grayscale level , set by the first 4 bits of b9
+    // b8 is to make custom presets (16 next commands sent)
 
-    OLED_WriteReg(0xb6);  // set phase leghth
-    OLED_WriteReg(0x0f);
+    OLED_WriteReg(0xb3);  // set dclk :  low freq: may flicker but lower energy consumption
+    OLED_WriteReg(0xc1);  // first 4 bits are clock divide ratio , last 4 bits are oscillator frequency
+                          // 80Hz:0xc1 90Hz:0xe1 100Hz:0x00  110Hz:0x30 120Hz:0x50 130Hz:0x70 
 
-    OLED_WriteReg(0xbe);
-    OLED_WriteReg(0x0f);
+    OLED_WriteReg(0xab);  // function selection A: bit 0 is use of internal voltage regulator
+    OLED_WriteReg(0x01);  // 1 -> enable internal (0 would be external)
 
-    OLED_WriteReg(0xbc);
-    OLED_WriteReg(0x08);
+    OLED_WriteReg(0xbe);  // set COM deselect voltage level
+    OLED_WriteReg(0x0f);  // max value should be 0x07 = 0.86*Vcc
 
-    OLED_WriteReg(0xd5);
-    OLED_WriteReg(0x62);
+    OLED_WriteReg(0xbc);  // set precharge voltage level
+    OLED_WriteReg(0x08);  // set to Vcomh (below are multiples of Vcc)
 
-    OLED_WriteReg(0xfd);
-    OLED_WriteReg(0x12);
+    OLED_WriteReg(0xd5);  // function selection B
+    OLED_WriteReg(0x62);  // only first 2 bits should have an effect? enable or not second precharge, and internal or external VSL
+
+    OLED_WriteReg(0xfd);  // MCU protection
+    OLED_WriteReg(0x12);  // only 3rd bit has an effect, lock or unlock memory commands
 
 }
 
@@ -194,6 +171,7 @@ void OLED_1in5_Display(UBYTE *Image)
     for(y=0; y<OLED_1in5_HEIGHT; y++)
         for(x=0; x<OLED_1in5_WIDTH/2; x++)
         {
+            // Does this interfere with 8bit display?
             temp = Image[x + y*64]; // writing data for desired pixel, adress is bc Xcoordinate + Ycoord*screen width (rows completed)
             OLED_WriteData(temp);
         }
@@ -204,14 +182,14 @@ void OLED_1in5_Display_Part(UBYTE *Image, UBYTE Xstart, UBYTE Ystart, UBYTE Xend
 {
     //this function is still not working for xstart /=0
     UWORD x, y, temp;
+    UWORD imgWidth = Xend-Xstart;
     // screen is addressed using 1 byte for 1 pixel in height and 1 byte for 2 pixels in width
     // this means we need to divide width by 2 in address
-    UWORD imgWidth = Xend-Xstart;
     UWORD widthByte = ((Xend-Xstart)%2==0) ? ((Xend-Xstart)/2) : ((Xend-Xstart)/2+1); 
     UWORD imgHeight = Yend - Ystart;
     UWORD heightByte = Yend - Ystart;
 
-    UWORD XstartOffset = (Xstart%2==0) ? (Xstart/2) : (Xstart/2+1);
+    UWORD XstartOffset = (Xstart%2==0) ? (Xstart/2) : (Xstart/2+1); //this is a bug : if 
     UWORD YstartOffset = Ystart;
     
     OLED_SetWindow(Xstart, Ystart, Xend, Yend);
@@ -221,4 +199,9 @@ void OLED_1in5_Display_Part(UBYTE *Image, UBYTE Xstart, UBYTE Ystart, UBYTE Xend
             temp = Image[x + y*widthByte]; //(XstartOffset + YstartOffset*widthByte) +
             OLED_WriteData(temp);
         }
+        // for(x=0; x < Xend-Xstart; x++)
+        // {
+        //     temp = Image[x + y*widthByte]; //(XstartOffset + YstartOffset*widthByte) +
+        //     OLED_WriteData(temp);
+        // }
 }
