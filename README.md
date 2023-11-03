@@ -14,7 +14,7 @@ It depends on the [pico sdk](https://github.com/raspberrypi/pico-sdk/) sublinked
    git submodule update --init
    mkdir build
    cd build
-   cmake .. -DCMAKE_BUILD_TYPE=Release -BOARD=pico_w
+   cmake .. -DCMAKE_BUILD_TYPE=Release -PICO_BOARD=pico_w
    make
    ```
  3. `tamago.elf` can be loaded via a debugger, or `tamago.uf2` can be dragged and dropped holding bootsel button when plugging the pico

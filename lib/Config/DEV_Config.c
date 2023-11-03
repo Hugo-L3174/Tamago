@@ -1,14 +1,3 @@
-/*****************************************************************************
-* | File      	:   DEV_Config.c
-* | Author      :   Waveshare team
-* | Function    :   Hardware underlying interface
-* | Info        :
-*----------------
-* |	This version:   V2.0
-* | Date        :   2020-06-17
-* | Info        :   Basic version
-*
-******************************************************************************/
 #include "DEV_Config.h"
 #include <unistd.h>
 
@@ -142,25 +131,6 @@ UBYTE Init_Battery()
     return 0;
 }
 
-/******************************************************************************
-function:	Module Initialize, the library and initialize the pins, SPI protocol
-parameter:
-Info:
-******************************************************************************/
-UBYTE DEV_ModuleInit(void)
-{
-    stdio_init_all();
-    DEV_GPIO_Init();
-    spi_init(spi0, 10000*1000); // Baudrate set to 48kHz
-    gpio_set_function(OLED_CLK, GPIO_FUNC_SPI);
-    gpio_set_function(OLED_TX, GPIO_FUNC_SPI);
-    gpio_set_function(BUZZ, GPIO_FUNC_PWM);
-
-    i2c_init(i2c1, 400 * 1000);
-    gpio_set_function(BATT_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(BATT_SDL, GPIO_FUNC_I2C);
-    return 0;
-}
 
 void DEV_SPI_WriteByte(uint8_t Value)
 {

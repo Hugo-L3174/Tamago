@@ -1,63 +1,4 @@
 /******************************************************************************
-* | File      	:   GUI_Paint.h
-* | Author      :   Waveshare electronics
-* | Function    :	Achieve drawing: draw points, lines, boxes, circles and
-*                   their size, solid dotted line, solid rectangle hollow
-*                   rectangle, solid circle hollow circle.
-* | Info        :
-*   Achieve display characters: Display a single character, string, number
-*   Achieve time display: adaptive size display time minutes and seconds
-* -----------------------------------------------------------------------------
-* |	This version:   V3.2
-* | Date        :   2020-08-17
-* | Info        :
-* -----------------------------------------------------------------------------
-* V3.2(2020-08-17):
-* 1.Change: Paint_SetScale(UBYTE scale)
-*        Add scale 65K
-* 2.Change: Paint_SetPixel(UWORD Xpoint, UWORD Ypoint, UWORD Color)
-*        Add the branch for scale 65K
-* 3.Change: Paint_Clear(UWORD Color)
-*        Add the branch for scale 65K
-* -----------------------------------------------------------------------------
-* V3.1(2020-08-14):
-* 1.Change: Paint_SetScale(UBYTE scale)
-*        Add scale 16
-* 2.Change: Paint_SetPixel(UWORD Xpoint, UWORD Ypoint, UWORD Color)
-*        Add the branch for scale 16
-* 3.Change: Paint_Clear(UWORD Color)
-*        Add the branch for scale 16
-* -----------------------------------------------------------------------------
-* V3.0(2019-04-18):
-* 1.Change: 
-*    Paint_DrawPoint(..., DOT_STYLE DOT_STYLE)
-* => Paint_DrawPoint(..., DOT_STYLE Dot_Style)
-*    Paint_DrawLine(..., LINE_STYLE Line_Style, DOT_PIXEL Dot_Pixel)
-* => Paint_DrawLine(..., DOT_PIXEL Line_width, LINE_STYLE Line_Style)
-*    Paint_DrawRectangle(..., DRAW_FILL Filled, DOT_PIXEL Dot_Pixel)
-* => Paint_DrawRectangle(..., DOT_PIXEL Line_width, DRAW_FILL Draw_Fill)
-*    Paint_DrawCircle(..., DRAW_FILL Draw_Fill, DOT_PIXEL Dot_Pixel)
-* => Paint_DrawCircle(..., DOT_PIXEL Line_width, DRAW_FILL Draw_Filll)
-*
-* -----------------------------------------------------------------------------
-* V2.0(2018-11-15):
-* 1.add: Paint_NewImage()
-*    Create an image's properties
-* 2.add: Paint_SelectImage()
-*    Select the picture to be drawn
-* 3.add: Paint_SetRotate()
-*    Set the direction of the cache    
-* 4.add: Paint_RotateImage() 
-*    Can flip the picture, Support 0-360 degrees, 
-*    but only 90.180.270 rotation is better
-* 4.add: Paint_SetMirroring() 
-*    Can Mirroring the picture, horizontal, vertical, origin
-* 5.add: Paint_DrawString_CN() 
-*    Can display Chinese(GB1312)   
-*
-* ----------------------------------------------------------------------------- 
-* V1.0(2018-07-17):
-*   Create library
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documnetation files (the "Software"), to deal
@@ -156,7 +97,7 @@ typedef enum {
     DOT_PIXEL_7X7  , 		// 7 X 7
     DOT_PIXEL_8X8  , 		// 8 X 8
 } DOT_PIXEL;
-#define DOT_PIXEL_DFT  DOT_PIXEL_1X1  //Default dot pilex
+#define DOT_PIXEL_DFT  DOT_PIXEL_1X1  //Default dot pixel
 
 /**
  * Point size fill style
@@ -165,7 +106,7 @@ typedef enum {
     DOT_FILL_AROUND  = 1,		// dot pixel 1 x 1
     DOT_FILL_RIGHTUP  , 		// dot pixel 2 X 2
 } DOT_STYLE;
-#define DOT_STYLE_DFT  DOT_FILL_AROUND  //Default dot pilex
+#define DOT_STYLE_DFT  DOT_FILL_AROUND  //Default dot pixel
 
 /**
  * Line style, solid or dashed
