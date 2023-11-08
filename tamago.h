@@ -128,6 +128,12 @@ void menu_logic(uint gpio, uint32_t events);
 
 int timers_test(void);
 
+// Refresh main menu icons area
+void RefreshIcons(void);
+
+// Refresh sprite in center area
+void RefreshSprite(void);
+
 
 
 /****************************************************************

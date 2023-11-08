@@ -217,14 +217,14 @@ void Paint_Clear(UWORD Color)
 {
     if(Paint.Scale == 2 || Paint.Scale == 4) {
         for (UWORD Y = 0; Y < Paint.HeightByte; Y++) {
-            for (UWORD X = 0; X < Paint.WidthByte; X++ ) {//8 pixel =  1 byte
+            for (UWORD X = 0; X < Paint.WidthByte; X++ ) { // 4 pixel =  1 byte
                 UDOUBLE Addr = X + Y*Paint.WidthByte;
                 Paint.Image[Addr] = Color;
             }
         }
     }else if(Paint.Scale == 16) {
         for (UWORD Y = 0; Y < Paint.HeightByte; Y++) {
-            for (UWORD X = 0; X < Paint.WidthByte; X++ ) {//8 pixel =  1 byte
+            for (UWORD X = 0; X < Paint.WidthByte; X++ ) {// 2 pixels =  1 byte
                 UDOUBLE Addr = X + Y*Paint.WidthByte;
                 Color = Color & 0x0f;
                 Paint.Image[Addr] = (Color<<4) | Color;
@@ -232,7 +232,7 @@ void Paint_Clear(UWORD Color)
         }
     }else if(Paint.Scale == 65) {
         for (UWORD Y = 0; Y < Paint.HeightByte; Y++) {
-            for (UWORD X = 0; X < Paint.WidthByte; X++ ) {//8 pixel =  1 byte
+            for (UWORD X = 0; X < Paint.WidthByte; X++ ) {// 1 pixel =  1 byte
                 UDOUBLE Addr = X*2 + Y*Paint.WidthByte;
                 Paint.Image[Addr] = 0x0f & (Color>>8);
                 Paint.Image[Addr+1] = 0x0f & Color;
@@ -253,12 +253,25 @@ parameter:
 void Paint_ClearWindows(UWORD Xstart, UWORD Ystart, UWORD Xend, UWORD Yend, UWORD Color)
 {
     UWORD X, Y;
-    for (Y = Ystart; Y < Yend; Y++) {
-        for (X = Xstart; X < Xend; X++) {//8 pixel =  1 byte
-            Paint_SetPixel(X, Y, Color);
+
+    if(Paint.Scale == 16) {
+        for (Y = Ystart; Y < Yend; Y++) {
+            for (X = Xstart; X < Xend; X++ ) { // 2 pixels =  1 byte
+                UDOUBLE Addr = X/2 + Y*Paint.WidthByte;
+                Color = Color & 0x0f;
+                Paint.Image[Addr] = (Color<<4) | Color;
+            }
         }
     }
+    // UWORD X, Y;
+    // for (Y = Ystart; Y < Yend; Y++) {
+    //     for (X = Xstart; X < Xend; X++) { // 8 bits =  1 pixel ==> beware image.scale, this is for 255 colors
+    //         Paint_SetPixel(X, Y, Color);
+    //     }
+    // }
 }
+
+
 
 /******************************************************************************
 function: Draw Point(Xpoint, Ypoint) Fill the color
@@ -806,12 +819,21 @@ void Paint_DrawImage(const unsigned char *image_buffer, UWORD xStart, UWORD ySta
     UBYTE imageMask = 0;
     UBYTE imageShift;
     UBYTE screenShift;
+    bool oddWidth = false;
+    // If the image width is uneven, the last segment of each
+    // line will contain both the last pixel of the line and the first pixel of the
+    // next. That will cause a skew in the image.
+    
+    if (W_Image%2==1){ // if width image is odd
+        oddWidth = true;
+        /* code */
+    }
     for (y = 0; y < H_Image; y++) {
-        for (x = 0; x < W_Image; x++) { // going through every pixel
-            // pixel selection in image adress
+        for (x = 0; x < W_Image; x++) { // going through every pixel            
+            // pixel selection in image address
             imageShift = (x % 2)*4; // shift 0 if even, 4 if odd 
             imageMask = 0xf0 >> imageShift; // mask is 0xf0 if even, 0x0f if odd (1st half of char or 2nd half)
-            // pixel selection in screen adress
+            // pixel selection in screen address
             screenShift = (x % 2)*4;
             screenMask = 0xf0 >> screenShift;
             // full adresses 
@@ -880,7 +902,7 @@ void Paint_DrawBitMap(const unsigned char* image_buffer)
     UDOUBLE Addr = 0;
 
     for (y = 0; y < Paint.HeightByte; y++) {
-        for (x = 0; x < Paint.WidthByte; x++) {//8 pixel =  1 byte
+        for (x = 0; x < Paint.WidthByte; x++) {
             Addr = x + y * Paint.WidthByte;
             Paint.Image[Addr] = (unsigned char)image_buffer[Addr];
         }
@@ -892,7 +914,7 @@ void Paint_DrawBitMap_Block(const unsigned char* image_buffer, UBYTE Region)
     UWORD x, y;
     UDOUBLE Addr = 0;
 		for (y = 0; y < Paint.HeightByte; y++) {
-				for (x = 0; x < Paint.WidthByte; x++) {//8 pixel =  1 byte
+				for (x = 0; x < Paint.WidthByte; x++) {
 						Addr = x + y * Paint.WidthByte ;
 						Paint.Image[Addr] = \
 						(unsigned char)image_buffer[Addr+ (Paint.HeightByte)*Paint.WidthByte*(Region - 1)];

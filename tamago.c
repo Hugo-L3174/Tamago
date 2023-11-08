@@ -221,7 +221,7 @@ int debug_overlay(void)
 {
 	Paint_SelectImage(ScreenImage_);
 	add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
-	
+
 	// this sets the gpio irq callback, will be the same for the 3 buttons
 	gpio_set_irq_enabled_with_callback(LBUTT, GPIO_IRQ_EDGE_RISE , true, &menu_logic);
 	gpio_set_irq_enabled(MBUTT, GPIO_IRQ_EDGE_RISE , true);
@@ -233,93 +233,20 @@ int debug_overlay(void)
 
 	while (true)
 	{
-		// if (gpio_get(RBUTT) && game_.mainCursor < 8)
-		// {
-		// 	game_.mainCursor++;
-		// }
-		// else if (gpio_get(RBUTT) && game_.mainCursor == 8)
-		// {
-		// 	game_.mainCursor = none;
-		// }
-		// else if (gpio_get(LBUTT) && game_.mainCursor > 0)
-		// {
-		// 	game_.mainCursor--;
-		// }
-		// else if (gpio_get(LBUTT) && game_.mainCursor == 0)
-		// {
-		// 	game_.mainCursor = settings;
-		// }
-
-		// clearing overlay
-		Paint_DrawRectangle(1, 1, 128, 24, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-		Paint_DrawRectangle(1, 104, 128, 128, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+		if (iconsToUpdate_)
+		{
+			RefreshIcons();
+			OLED_1in5_Display(ScreenImage_);
+		}
 
 		// update sprite if position changed
 		if (spriteToUpdate_)
 		{
-			Paint_DrawRectangle(1, 24, 128, 104, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawImage(monky2, tama_.sprite.xOrig, tama_.sprite.yOrig, 64, 64);
+			RefreshSprite();
+			OLED_1in5_Display(ScreenImage_);
 		}
 		
-		
-
-		// we divide top and bottom in 4 each
-		// screen is 128 --> 32 for each icon, starting at 0, 32, 64, 98
-		// for debug, chars with font20: 14*20 so to be in middle start at 9, 41, 75, 107
-		// /!\ bug probably coming from the way rectangles are drawn: drawChar and drawRectangle both use 1-128 instead of 0-127, + seems to be a border of 1pixl ?
-		// --> todo: find a better way to clear and draw than rectangles, probably for{}+setPixel
-		switch (game_.mainCursor)
-		{
-		case none:
-			break;
-		case food:
-			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			// Paint_DrawChar(9, 107, 'b', &Font20, 0xe, 0x3);
-			Paint_DrawImage(chips, 8, 104, 24, 24);
-			break;
-		case play:
-			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawChar(41, 107, 'c', &Font20, 0xe, 0x3);
-			break;
-		case wash:
-			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawChar(75, 107, 'd', &Font20, 0xe, 0x3);
-			break;
-		case heal:
-			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawChar(107, 107, 'e', &Font20, 0xe, 0x3);
-			break;
-		case comm:
-			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawChar(9, 0, 'f', &Font20, 0xe, 0x3);
-			break;
-		case bedtime:
-			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawChar(41, 0, 'g', &Font20, 0xe, 0x3);
-			break;
-		case infos:
-			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawChar(75, 0, 'h', &Font20, 0xe, 0x3);
-			break;
-		case settings:
-			Paint_DrawRectangle(1, 1, 128, 21, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawRectangle(1, 108, 128, 128, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-			Paint_DrawChar(107, 0, 'i', &Font20, 0xe, 0x3);
-			break;
-
-		}
-
-		OLED_1in5_Display(ScreenImage_);
-		// sleep_ms(100);
 	}
-	
 
 }
 
@@ -524,6 +451,69 @@ int OLED_1in5_test(void)
 	}
 }
 
+void RefreshIcons()
+{
+    // clearing overlay
+	// clear function is shifted of 1 pixel in width axis (X)
+    Paint_ClearWindows(1, 0, 128, 24, BLACK);
+	Paint_ClearWindows(1, 104, 128, 128, BLACK);
+
+	switch (game_.mainCursor)
+		{
+		case none:
+			break;
+		case food:
+			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_DrawImage(chips, 8, 104, 24, 24);
+			break;
+		case play:
+			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_DrawChar(41, 107, 'c', &Font20, 0xe, 0x3);
+			break;
+		case wash:
+			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_DrawChar(75, 107, 'd', &Font20, 0xe, 0x3);
+			break;
+		case heal:
+			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_DrawChar(107, 107, 'e', &Font20, 0xe, 0x3);
+			break;
+		case comm:
+			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_DrawChar(9, 0, 'f', &Font20, 0xe, 0x3);
+			break;
+		case bedtime:
+			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_DrawChar(41, 0, 'g', &Font20, 0xe, 0x3);
+			break;
+		case infos:
+			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_DrawChar(75, 0, 'h', &Font20, 0xe, 0x3);
+			break;
+		case settings:
+			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_DrawChar(107, 0, 'i', &Font20, 0xe, 0x3);
+			break;
+
+		}
+
+    iconsToUpdate_ = false;
+}
+
+void RefreshSprite()
+{
+    Paint_DrawRectangle(1, 25, 128, 103, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+	Paint_DrawImage(monky2, tama_.sprite.xOrig, tama_.sprite.yOrig, 64, 64);
+    spriteToUpdate_ = false;
+}
 
 void menu_logic(uint gpio, uint32_t events) 
 {
@@ -536,9 +526,11 @@ void menu_logic(uint gpio, uint32_t events)
             if (game_.mainCursor > none)
             {
                 game_.mainCursor--;
+				iconsToUpdate_ = true;
             }else
             {
                 game_.mainCursor = settings;
+				iconsToUpdate_ = true;
             }
             break;
         case foodScreen:
@@ -772,9 +764,11 @@ void menu_logic(uint gpio, uint32_t events)
             if (game_.mainCursor < settings)
             {
                 game_.mainCursor++;
+				iconsToUpdate_ = true;
             }else
             {
                 game_.mainCursor = none;
+				iconsToUpdate_ = true;
             }
             break;
         case foodScreen:
