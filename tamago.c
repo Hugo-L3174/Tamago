@@ -56,7 +56,7 @@ int image_init()
 
 // This is the main loop for core 0
 int main() {
-
+	time = to_ms_since_boot(get_absolute_time());
 	if(hardware_setup() != 0) {
 		return -1;
 	}
@@ -228,22 +228,32 @@ int debug_overlay(void)
 	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
 
 	Paint_DrawImage(monky2, tama_.sprite.xOrig, tama_.sprite.yOrig, 64, 64);
+	OLED_1in5_Display(ScreenImage_);
 	// Paint_DrawImage(farfetchd_gen3, 64, 40, 64, 64);
 	//Paint_DrawImage(test, 64, 40, 1, 1);
 
 	while (true)
 	{
-		if (iconsToUpdate_)
+		if (menuToUpdate_ || cursorToUpdate_)
 		{
-			RefreshIcons();
+			RefreshMenu();
 			OLED_1in5_Display(ScreenImage_);
 		}
 
-		// update sprite if position changed
-		if (spriteToUpdate_)
+		if (game_.currentScreen == mainScreen)
 		{
-			RefreshSprite();
-			OLED_1in5_Display(ScreenImage_);
+			if (iconsToUpdate_)
+			{
+				RefreshIcons();
+				OLED_1in5_Display(ScreenImage_);
+			}
+
+			// update sprite if position changed
+			if (spriteToUpdate_)
+			{
+				RefreshSprite();
+				OLED_1in5_Display(ScreenImage_);
+			}
 		}
 		
 	}
@@ -515,8 +525,124 @@ void RefreshSprite()
     spriteToUpdate_ = false;
 }
 
+void RefreshMenu()
+{	
+	Paint_Clear(BLACK);
+	switch (game_.currentScreen)
+	{
+	case mainScreen:
+		RefreshSprite();
+		RefreshIcons();
+		break;
+	case foodScreen:
+		for (UBYTE i = 0; i < foodCancel+1; i++)
+		{	
+			if (game_.foodCursor == i)
+			{
+				Paint_DrawString_EN(0, 13*i, foodOptions[i], &Font12, 0x3, 0xe);
+			}else
+			{
+				Paint_DrawString_EN(0, 13*i, foodOptions[i], &Font12, 0x8, 0x1);
+			}	
+		}
+		break;
+	case playScreen:
+		for (UBYTE i = 0; i < playCancel+1; i++)
+		{	
+			if (game_.playCursor == i)
+			{
+				Paint_DrawString_EN(0, 13*i, playOptions[i], &Font12, 0x3, 0xe);
+			}else
+			{
+				Paint_DrawString_EN(0, 13*i, playOptions[i], &Font12, 0x8, 0x1);
+			}	
+		}
+		break;
+	case washScreen:
+		for (UBYTE i = 0; i < washCancel+1; i++)
+		{	
+			if (game_.washCursor == i)
+			{
+				Paint_DrawString_EN(0, 13*i, washOptions[i], &Font12, 0x3, 0xe);
+			}else
+			{
+				Paint_DrawString_EN(0, 13*i, washOptions[i], &Font12, 0x8, 0x1);
+			}	
+		}
+		break;
+	case healScreen:
+		for (UBYTE i = 0; i < healCancel+1; i++)
+		{	
+			if (game_.healCursor == i)
+			{
+				Paint_DrawString_EN(0, 13*i, healOptions[i], &Font12, 0x3, 0xe);
+			}else
+			{
+				Paint_DrawString_EN(0, 13*i, healOptions[i], &Font12, 0x8, 0x1);
+			}	
+		}
+		break;
+	case commScreen:
+		for (UBYTE i = 0; i < commCancel+1; i++)
+		{	
+			if (game_.commCursor == i)
+			{
+				Paint_DrawString_EN(0, 13*i, commOptions[i], &Font12, 0x3, 0xe);
+			}else
+			{
+				Paint_DrawString_EN(0, 13*i, commOptions[i], &Font12, 0x8, 0x1);
+			}	
+		}
+		break;
+	case bedtimeScreen:
+		for (UBYTE i = 0; i < bedtimeCancel+1; i++)
+		{	
+			if (game_.bedtimeCursor == i)
+			{
+				Paint_DrawString_EN(0, 13*i, bedtimeOptions[i], &Font12, 0x3, 0xe);
+			}else
+			{
+				Paint_DrawString_EN(0, 13*i, bedtimeOptions[i], &Font12, 0x8, 0x1);
+			}	
+		}
+		break;
+	case infosScreen:
+		for (UBYTE i = 0; i < infosCancel+1; i++)
+		{	
+			if (game_.infoCursor == i)
+			{
+				Paint_DrawString_EN(0, 13*i, infoOptions[i], &Font12, 0x3, 0xe);
+			}else
+			{
+				Paint_DrawString_EN(0, 13*i, infoOptions[i], &Font12, 0x8, 0x1);
+			}	
+		}
+		break;
+	case settingsScreen:
+		for (UBYTE i = 0; i < settingsCancel+1; i++)
+		{	
+			if (game_.settingsCursor == i)
+			{
+				Paint_DrawString_EN(0, 13*i, settingsOptions[i], &Font12, 0x3, 0xe);
+			}else
+			{
+				Paint_DrawString_EN(0, 13*i, settingsOptions[i], &Font12, 0x8, 0x1);
+			}	
+		}
+		break;
+	}
+	cursorToUpdate_ = false;
+	menuToUpdate_ = false;
+}
+
 void menu_logic(uint gpio, uint32_t events) 
-{
+{	
+	if ((to_ms_since_boot(get_absolute_time())-time)>delayTime) {
+	// Recommend to not to change the position of this line
+	time = to_ms_since_boot(get_absolute_time());
+	
+	
+
     switch (gpio)
     {
     case LBUTT:
@@ -526,12 +652,11 @@ void menu_logic(uint gpio, uint32_t events)
             if (game_.mainCursor > none)
             {
                 game_.mainCursor--;
-				iconsToUpdate_ = true;
             }else
             {
                 game_.mainCursor = settings;
-				iconsToUpdate_ = true;
             }
+			iconsToUpdate_ = true;
             break;
         case foodScreen:
             if (game_.foodCursor > 0) // comparing to int instead of name in case order is moved
@@ -540,7 +665,8 @@ void menu_logic(uint gpio, uint32_t events)
             }else
             {
                 game_.foodCursor = foodCancel;
-            }            
+            }  
+			cursorToUpdate_ = true;          
             break;
         case playScreen:
             if (game_.playCursor > 0)
@@ -550,6 +676,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.playCursor = playCancel;
             } 
+			cursorToUpdate_ = true;
             break;
         case washScreen:
             if (game_.washCursor > 0)
@@ -559,6 +686,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.washCursor = washCancel;
             } 
+			cursorToUpdate_ = true;
             break;
         case healScreen:
             if (game_.healCursor > 0)
@@ -568,6 +696,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.healCursor = healCancel;
             } 
+			cursorToUpdate_ = true;
             break;
         case commScreen:
             if (game_.healCursor > 0)
@@ -577,6 +706,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.healCursor = healCancel;
             } 
+			cursorToUpdate_ = true;
             break;
         case bedtimeScreen:
             if (game_.bedtimeCursor > 0)
@@ -586,6 +716,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.bedtimeCursor = bedtimeCancel;
             } 
+			cursorToUpdate_ = true;
             break;
         case infosScreen:
             if (game_.infoCursor > 0)
@@ -594,7 +725,8 @@ void menu_logic(uint gpio, uint32_t events)
             }else
             {
                 game_.infoCursor = infosCancel;
-            } 
+            }
+			cursorToUpdate_ = true; 
             break;
         case settingsScreen:
             if (game_.settingsCursor > 0)
@@ -604,6 +736,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.settingsCursor = settingsCancel;
             } 
+			cursorToUpdate_ = true;
             break;
         }
         break;
@@ -660,6 +793,7 @@ void menu_logic(uint gpio, uint32_t events)
                 break;
             case foodCancel:
                 game_.currentScreen = mainScreen;
+				game_.foodCursor = 0;
                 menuToUpdate_ = true;
                 break;
             }
@@ -672,6 +806,7 @@ void menu_logic(uint gpio, uint32_t events)
                 break;
             case playCancel:
                 game_.currentScreen = mainScreen;
+				game_.playCursor = 0;
                 menuToUpdate_ = true;
                 break;
             }
@@ -684,6 +819,7 @@ void menu_logic(uint gpio, uint32_t events)
                 break;
             case washCancel:
                 game_.currentScreen = mainScreen;
+				game_.washCursor = 0;
                 menuToUpdate_ = true;
                 break;
             }
@@ -696,6 +832,7 @@ void menu_logic(uint gpio, uint32_t events)
                 break;
             case healCancel:
                 game_.currentScreen = mainScreen;
+				game_.healCursor = 0;
                 menuToUpdate_ = true;
                 break;
             }
@@ -707,6 +844,7 @@ void menu_logic(uint gpio, uint32_t events)
                 break;
             case commCancel:
                 game_.currentScreen = mainScreen;
+				game_.commCursor = 0;
                 menuToUpdate_ = true;
                 break;
             }
@@ -719,6 +857,7 @@ void menu_logic(uint gpio, uint32_t events)
                 break;
             case bedtimeCancel:
                 game_.currentScreen = mainScreen;
+				game_.bedtimeCursor = 0;
                 menuToUpdate_ = true;
                 break;
             }
@@ -739,6 +878,7 @@ void menu_logic(uint gpio, uint32_t events)
                 break;
             case infosCancel:
                 game_.currentScreen = mainScreen;
+				game_.infoCursor = 0;
                 menuToUpdate_ = true;
                 break;
             }
@@ -751,6 +891,7 @@ void menu_logic(uint gpio, uint32_t events)
                 break;
             case settingsCancel:
                 game_.currentScreen = mainScreen;
+				game_.settingsCursor = 0;
                 menuToUpdate_ = true;
                 break;
             }
@@ -764,12 +905,11 @@ void menu_logic(uint gpio, uint32_t events)
             if (game_.mainCursor < settings)
             {
                 game_.mainCursor++;
-				iconsToUpdate_ = true;
             }else
             {
                 game_.mainCursor = none;
-				iconsToUpdate_ = true;
             }
+			iconsToUpdate_ = true;
             break;
         case foodScreen:
             if (game_.foodCursor < foodCancel)
@@ -779,6 +919,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.foodCursor = 0;
             }
+			cursorToUpdate_ = true;
             break;
         case playScreen:
             if (game_.playCursor < playCancel)
@@ -788,6 +929,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.playCursor = 0;
             }
+			cursorToUpdate_ = true;
             break;
         case washScreen:
             if (game_.washCursor < washCancel)
@@ -797,6 +939,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.washCursor = 0;
             }
+			cursorToUpdate_ = true;
             break;
         case healScreen:
             if (game_.healCursor < healCancel)
@@ -806,6 +949,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.healCursor = 0;
             }
+			cursorToUpdate_ = true;
             break;
         case commScreen:
             if (game_.commCursor < commCancel)
@@ -815,6 +959,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.commCursor = 0;
             }
+			cursorToUpdate_ = true;
             break;
         case bedtimeScreen:
             if (game_.bedtimeCursor < bedtimeCancel)
@@ -824,6 +969,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.bedtimeCursor = 0;
             }
+			cursorToUpdate_ = true;
             break;
         case infosScreen:
             if (game_.infoCursor < infosCancel)
@@ -833,6 +979,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.infoCursor = 0;
             }
+			cursorToUpdate_ = true;
             break;
         case settingsScreen:
             if (game_.settingsCursor < settingsCancel)
@@ -842,10 +989,12 @@ void menu_logic(uint gpio, uint32_t events)
             {
                 game_.settingsCursor = 0;
             }
+			cursorToUpdate_ = true;
             break;
         }
         break;
-    }
+    } // end switch
+	} // end if
 }
 
 // Add IR lib?

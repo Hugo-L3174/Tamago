@@ -52,8 +52,18 @@ enum washMenu {shower, washCancel};
 enum healMenu {pill, healCancel};
 enum commMenu {search, commCancel};
 enum bedtimeMenu {light, bedtimeCancel};
-enum infosMenu {name, age, hunger, species, happiness, infosCancel};
+enum infosMenu {name, age, hunger, happiness, species, infosCancel};
 enum settingsMenu {brightness, settingsCancel};
+
+// strings to display to select menu options
+const char *foodOptions[3] = {"Junk food", "Boire", "Annuler"};
+const char *playOptions[2] = {"Sauter", "Annuler"};
+const char *washOptions[2] = {"Douche", "Annuler"};
+const char *healOptions[2] = {"Pilule", "Annuler"};
+const char *commOptions[2] = {"Recherche", "Annuler"};
+const char *bedtimeOptions[2] = {"Eteindre", "Annuler"};
+const char *infoOptions[6] = {"Nom", "Age", "Faim", "Bonheur", "Espece", "Annuler"};
+const char *settingsOptions[2] = {"Luminosite", "Annuler"};
 
 // possible screens
 enum screens {mainScreen, foodScreen, playScreen, washScreen, healScreen, commScreen, bedtimeScreen, infosScreen, settingsScreen};
@@ -110,6 +120,7 @@ int hardware_setup(void);
 
 // Initialize pet variables
 int tama_init(void);
+
 int enter_name(void);
 
 int debug_buttons(void);
@@ -134,7 +145,8 @@ void RefreshIcons(void);
 // Refresh sprite in center area
 void RefreshSprite(void);
 
-
+// Refresh whole screen for menu change
+void RefreshMenu(void);
 
 /****************************************************************
 *                   Internal global variables
@@ -154,10 +166,14 @@ game game_ = {none, junk, mainScreen};
 volatile bool spriteToUpdate_ = false;
 volatile bool iconsToUpdate_ = false;
 volatile bool menuToUpdate_ = false;
+volatile bool cursorToUpdate_ = false;
 
 // Timers for timed callbacks
 struct repeating_timer hungerTimer_, spriteMoveTimer_;
 
+// timer for debounce control
+unsigned long time;
+const int delayTime = 200; // Delay between every push button
 
 // Sprite structure
 const unsigned char *duck[18] = {can128rgb1, can128rgb2, can128rgb3, can128rgb4, can128rgb5, can128rgb6, 
