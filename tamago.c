@@ -3,7 +3,7 @@
 int hardware_setup()
 {
 	stdio_init_all();
-	#ifdef SCREEN
+	#if SCREEN
 	if(Init_OLED() != 0) {
 		return -1;
 	}
@@ -12,19 +12,33 @@ int hardware_setup()
 	OLED_1in5_Clear();
 	#endif
 
-	#ifdef BATTERY
+	#if UPS
 	if(Init_Battery() != 0) {
 		return -1;
 	}
 	#endif
 
-	#ifdef BUTTONS
+	// Pico W uses a CYW43 pin to get VBUS so we need to initialise it to monitor battery
+    #if BATTERY_MONITOR || WIRELESS
+    if (cyw43_arch_init() != 0) {
+        return -1;
+    }
+    #endif
+
+	#if BATTERY_MONITOR
+	// if (adc_init() != 0){
+	// 	return -1;
+	// }
+	adc_init();
+	#endif
+
+	#if BUTTONS
 	if(Init_Buttons() != 0) {
 		return -1;
 	}
 	#endif
 
-	#ifdef BUZZER
+	#if BUZZER
 	if(Init_Buzzer() != 0) {
 		return -1;
 	}
@@ -69,10 +83,10 @@ int main() {
 
 	// OLED_canarticho();
 	// buzzTest();
-	// debug_battery();
+	debug_battery();
 	
 	// debug_images();
-	debug_overlay();
+	// debug_overlay();
 
 }
 
@@ -118,7 +132,17 @@ int tama_init(void)
 	// initialize random species
 	int time = time_us_32(); //get_absolute_time();
 	srand(time);
-	tama_.type = rand() % (species_nb - 1); 
+	strcpy(tama_.species, tamaSpecies[rand() % (species_nb + 1)]); // +1 to get full range 
+	// initialize tama values
+	strcpy(tama_.name, "Zero");
+	tama_.hunger = 3;
+	tama_.age = 0;
+	tama_.iq = 10;
+	tama_.sick = 0;
+	tama_.happiness = 3;
+	// initialize tama position and movement
+	tama_.sprite = (sprite){.xOrig = 0, .yOrig = 32, .goingRight = true};
+
 	// from the species, create the image loop of the tama pet?
 
 }
@@ -141,8 +165,50 @@ int buzzTest(void)
     while(!noteTimer.Done);
 }
 
-
+#if BATTERY_MONITOR
 int debug_battery(void)
+{
+	Paint_SelectImage(ScreenImage_);
+	while (1)
+	{
+		// pass this in a separate file in order to have only tamago specific things here
+
+	// Get battery status
+	if (power_source(&battery_status) == PICO_OK) {
+		power_str = battery_status ? "BATTERY" : "PLUGGED";
+	}
+
+	// Get voltage
+	float voltage = 0;
+	int voltage_return = power_voltage(&voltage);
+	voltage = floorf(voltage * 100) / 100;
+	int percent_val = 0;
+
+	// Display power if it's changed
+	if (old_battery_status != battery_status || old_voltage != voltage) {
+		// will not execute if on battery: find an intelligent way to check battery volatge while plugged
+		// if (battery_status && voltage_return == PICO_OK) {
+			const float min_battery_volts = 3.0f;
+			const float max_battery_volts = 4.2f;
+			percent_val = ((voltage - min_battery_volts) / (max_battery_volts - min_battery_volts)) * 100;
+		// }
+
+		// Display power and remember old values
+		// printf("Power %s, %.2fV%s\n", power_str, voltage, percent_buf);
+		Paint_DrawString_EN(0, 0, "Power:", &Font12, 0x8, 0x1);
+		Paint_DrawString_EN(44, 0, power_str, &Font12, 0x8, 0x1);
+		Paint_DrawNum(0, 13, voltage, &Font12, 2, 0x8, 0x1);
+		Paint_DrawNum(0, 26, percent_val, &Font12, 0, 0x8, 0x1);
+		old_battery_status = battery_status;
+		old_voltage = voltage;
+	}
+	OLED_1in5_Display(ScreenImage_);
+	sleep_ms(1000);
+	}
+}
+#endif
+
+int debug_UPS(void)
 {
 	// Select ScreenImage to be sure
 	Paint_SelectImage(ScreenImage_);
@@ -606,7 +672,14 @@ void RefreshMenu()
 			}	
 		}
 		break;
-	case infosScreen:
+	case infosScreen: // todo: find better way to display dynamically tama attributes
+		// x position: char width in font12 x char nb in option displayed + fixed 2
+		Paint_DrawString_EN(30, 0, tama_.name, &Font12, 0x8, 0x1);
+		Paint_DrawNum(30, 13, tama_.age, &Font12, 0, 0x8, 0x1);
+		Paint_DrawNum(37, 26, tama_.hunger, &Font12, 0, 0x8, 0x1);
+		Paint_DrawNum(58, 39, tama_.happiness, &Font12, 0, 0x8, 0x1);
+		Paint_DrawString_EN(51, 52, tama_.species, &Font12, 0x8, 0x1);
+
 		for (UBYTE i = 0; i < infosCancel+1; i++)
 		{	
 			if (game_.infoCursor == i)

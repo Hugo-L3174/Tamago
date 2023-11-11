@@ -6,6 +6,8 @@
 #include "hardware/spi.h"
 #include "pico/time.h"
 #include "pico/multicore.h"
+#include "hardware/adc.h"
+#include "pico/cyw43_arch.h"
 //#include "hardware/rtc.h"
 
 
@@ -15,6 +17,7 @@
 #include "lib/Fonts/fonts.h"
 #include "lib/Buzzer/Buzz.h"
 #include "lib/UPS/Pico_UPS.h"
+#include "lib/Battery/power_status.h"
 
 
 #include "pic/C4Nar/c1.h"
@@ -29,11 +32,15 @@
 
 
 // defines to select which hardware to initialize
-#define SCREEN
-#define BUTTONS
+#define SCREEN          1
+#define UPS             0
+#define BUTTONS         1
+#define BATTERY_MONITOR 0
+#define BUZZER          0
+
 
 // total number of possibilities for species (for random selection)
-#define species_nb  8
+#define species_nb  7
 
 
 /****************************************************************
@@ -42,7 +49,8 @@
 ****************************************************************/
 
 // possible species
-enum species {canar, evangelion, tamago, calcifer, navet, howl, laputarob, dqslime}; 
+enum species {canar, evangelion, tamago, calcifer, navet, laputarob, dqslime}; 
+const char *tamaSpecies[8] = {"Canar", "Angel", "Tamago", "Calcifer", "Navet", "Roboto", "Gluant"};
 
 // menus options for cursor
 enum mainMenu {none, food, play, wash, heal, comm, bedtime, infos, settings};
@@ -56,14 +64,14 @@ enum infosMenu {name, age, hunger, happiness, species, infosCancel};
 enum settingsMenu {brightness, settingsCancel};
 
 // strings to display to select menu options
-const char *foodOptions[3] = {"Junk food", "Boire", "Annuler"};
-const char *playOptions[2] = {"Sauter", "Annuler"};
-const char *washOptions[2] = {"Douche", "Annuler"};
-const char *healOptions[2] = {"Pilule", "Annuler"};
-const char *commOptions[2] = {"Recherche", "Annuler"};
-const char *bedtimeOptions[2] = {"Eteindre", "Annuler"};
-const char *infoOptions[6] = {"Nom", "Age", "Faim", "Bonheur", "Espece", "Annuler"};
-const char *settingsOptions[2] = {"Luminosite", "Annuler"};
+const char *foodOptions[3] = {"Junk food", "Boire", "Retour"};
+const char *playOptions[2] = {"Sauter", "Retour"};
+const char *washOptions[2] = {"Douche", "Retour"};
+const char *healOptions[2] = {"Pilule", "Retour"};
+const char *commOptions[2] = {"Recherche", "Retour"};
+const char *bedtimeOptions[2] = {"Eteindre", "Retour"};
+const char *infoOptions[6] = {"Nom:", "Age:", "Faim:", "Bonheur:", "Espece:", "Retour"};
+const char *settingsOptions[2] = {"Luminosite", "Retour"};
 
 // possible screens
 enum screens {mainScreen, foodScreen, playScreen, washScreen, healScreen, commScreen, bedtimeScreen, infosScreen, settingsScreen};
@@ -84,7 +92,7 @@ typedef struct{
     int happiness;
     int iq;
     volatile sprite sprite;
-    enum species type;
+    char species[20];
 
 } kreatur;
 
@@ -125,7 +133,12 @@ int enter_name(void);
 
 int debug_buttons(void);
 
-int debug_battery(void);
+int debug_UPS(void);
+
+int debug_battery(void)
+{
+    
+};
 
 int debug_images(void);
 
@@ -157,7 +170,7 @@ void RefreshMenu(void);
 UBYTE *ScreenImage_;
 
 // creature instance
-kreatur tama_ = {"zero", 0, 0, 0, 10, 10, {0, 40, true}, 0};
+kreatur tama_;
 
 // game instance
 game game_ = {none, junk, mainScreen};
@@ -174,6 +187,12 @@ struct repeating_timer hungerTimer_, spriteMoveTimer_;
 // timer for debounce control
 unsigned long time;
 const int delayTime = 200; // Delay between every push button
+
+// Battery monitoring variables
+bool old_battery_status;
+float old_voltage;
+bool battery_status = true;
+char *power_str = "UNKNOWN";
 
 // Sprite structure
 const unsigned char *duck[18] = {can128rgb1, can128rgb2, can128rgb3, can128rgb4, can128rgb5, can128rgb6, 
