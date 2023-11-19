@@ -59,29 +59,29 @@ void DEV_Delay_ms(UDOUBLE xms)
     sleep_ms(xms);
 }
 
-static void DEV_GPIO_Init(void)
-{
-    // Init oled pins
-    DEV_GPIO_Mode(OLED_CS, GPIO_OUT);
-    DEV_GPIO_Mode(OLED_RST, GPIO_OUT);
-    DEV_GPIO_Mode(OLED_DC, GPIO_OUT);
+// static void DEV_GPIO_Init(void)
+// {
+//     // Init oled pins
+//     DEV_GPIO_Mode(OLED_CS, GPIO_OUT);
+//     DEV_GPIO_Mode(OLED_RST, GPIO_OUT);
+//     DEV_GPIO_Mode(OLED_DC, GPIO_OUT);
 
-	DEV_Digital_Write(OLED_CS, GPIO_OUT);
-    DEV_Digital_Write(OLED_DC, GPIO_IN);
+// 	DEV_Digital_Write(OLED_CS, GPIO_OUT);
+//     DEV_Digital_Write(OLED_DC, GPIO_IN);
 
-    // Init buttons pins
-    DEV_GPIO_Mode(LBUTT, GPIO_IN);
-    gpio_pull_down(LBUTT);
-    DEV_GPIO_Mode(MBUTT, GPIO_IN);
-    gpio_pull_down(MBUTT);
-    DEV_GPIO_Mode(RBUTT, GPIO_IN);
-    gpio_pull_down(RBUTT);
+//     // Init buttons pins
+//     DEV_GPIO_Mode(LBUTT, GPIO_IN);
+//     gpio_pull_down(LBUTT);
+//     DEV_GPIO_Mode(MBUTT, GPIO_IN);
+//     gpio_pull_down(MBUTT);
+//     DEV_GPIO_Mode(RBUTT, GPIO_IN);
+//     gpio_pull_down(RBUTT);
 
-    // Init battery monitoring pins
-    gpio_pull_up(BATT_SDA);
-    gpio_pull_up(BATT_SDL);
+//     // Init battery monitoring pins
+//     gpio_pull_up(BATT_SDA);
+//     gpio_pull_up(BATT_SDL);
     
-}
+// }
 
 UBYTE Init_OLED()
 {
@@ -102,13 +102,20 @@ UBYTE Init_OLED()
 
 UBYTE Init_Buttons()
 {
-    // Init buttons pins
     DEV_GPIO_Mode(LBUTT, GPIO_IN);
-    gpio_pull_down(LBUTT);
     DEV_GPIO_Mode(MBUTT, GPIO_IN);
-    gpio_pull_down(MBUTT);
     DEV_GPIO_Mode(RBUTT, GPIO_IN);
+
+    #if BREADBOARD
+    gpio_pull_down(LBUTT);
+    gpio_pull_down(MBUTT);
     gpio_pull_down(RBUTT);
+    #endif
+    #if TAMA_BOARD
+    gpio_pull_up(LBUTT);
+    gpio_pull_up(MBUTT);
+    gpio_pull_up(RBUTT);
+    #endif
     return 0;
 }
 

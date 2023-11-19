@@ -25,12 +25,12 @@ uint playTone(note_timer_struct *ntTimer)
       duration = ( 3 * ntTimer->wholenote / (-duration))/2;
 
   if(note->frequency == 0)
-      pwm_set_chan_level(ntTimer->slice_num,PWM_CHAN_A,0);
+      pwm_set_gpio_level(BUZZ, 0);
   else
   {
-   pwm_calcDivTop(&cfg,note->frequency,125000000);
-   pwm_init(ntTimer->slice_num,&cfg,true);
-   pwm_set_chan_level(ntTimer->slice_num,PWM_CHAN_A,cfg.top / 2);
+    pwm_calcDivTop(&cfg,note->frequency,125000000);
+    pwm_init(ntTimer->slice_num,&cfg,true);
+    pwm_set_gpio_level(BUZZ, cfg.top / 512); // dividing by 512: voltage is too high otherwise
   }
   ntTimer->delayOFF = duration;
   return duration;
@@ -60,7 +60,7 @@ int64_t timer_note_callback(alarm_id_t id, void *user_data)
     }
     else
     {
-       pwm_set_chan_level(ntTimer->slice_num,PWM_CHAN_A,0);
+      pwm_set_gpio_level(BUZZ, 0);
        uint delayOFF = ntTimer->delayOFF;
        ntTimer->delayOFF=0;
        //  next note

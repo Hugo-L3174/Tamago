@@ -19,7 +19,7 @@ int hardware_setup()
 	#endif
 
 	// Pico W uses a CYW43 pin to get VBUS so we need to initialise it to monitor battery
-    #if BATTERY_MONITOR || WIRELESS
+    #if BATTERY_MONITOR || BLUETOOTH
     if (cyw43_arch_init() != 0) {
         return -1;
     }
@@ -79,14 +79,13 @@ int main() {
 
 	// Main loop
 
-	// debug_buttons();
-
 	// OLED_canarticho();
 	// buzzTest();
-	debug_battery();
 	
+	// debug_battery();
 	// debug_images();
-	// debug_overlay();
+	debug_overlay();
+	// debug_bt();
 
 }
 
@@ -156,16 +155,15 @@ int buzzTest(void)
 	noteTimer.slice_num = slice_num;
 
 
-	// play_melody(&noteTimer, HappyBirday,140);
-    // wait until is done
-    // while(!noteTimer.Done);
-
-	play_melody(&noteTimer, HarryPotter,144);
+	play_melody(&noteTimer, HappyBirthday,140);
     // wait until is done
     while(!noteTimer.Done);
+
+	// play_melody(&noteTimer, HarryPotter,144);
+    // wait until is done
+    // while(!noteTimer.Done);
 }
 
-#if BATTERY_MONITOR
 int debug_battery(void)
 {
 	Paint_SelectImage(ScreenImage_);
@@ -206,7 +204,6 @@ int debug_battery(void)
 	sleep_ms(1000);
 	}
 }
-#endif
 
 int debug_UPS(void)
 {
@@ -254,34 +251,6 @@ int debug_UPS(void)
 	}
 }
 
-int debug_buttons(void)
-{
-	Paint_SelectImage(ScreenImage_);
-	DEV_Delay_ms(500);
-	Paint_Clear(BLACK);
-
-	// Paint_DrawNum(10, 0, tama.type, &Font16, 4, 0x1, 0xb);
-	// OLED_1in5_Display(BlackImage);
-	while (true)
-	{	
-		if (gpio_get(RBUTT))
-		{
-			Paint_DrawString_EN(10, 0, "right", &Font16, 0x1, 0xb);
-		}
-		if (gpio_get(MBUTT))
-		{
-			Paint_DrawString_EN(10, 0, "middle", &Font16, 0x1, 0xb);
-		}
-		if (gpio_get(LBUTT))
-		{
-			Paint_DrawString_EN(10, 0, "left", &Font16, 0x1, 0xb);
-		}
-		
-		OLED_1in5_Display(ScreenImage_);
-		Paint_Clear(BLACK);
-	}
-
-}
 
 int debug_overlay(void)
 {
@@ -295,8 +264,6 @@ int debug_overlay(void)
 
 	Paint_DrawImage(monky2, tama_.sprite.xOrig, tama_.sprite.yOrig, 64, 64);
 	OLED_1in5_Display(ScreenImage_);
-	// Paint_DrawImage(farfetchd_gen3, 64, 40, 64, 64);
-	//Paint_DrawImage(test, 64, 40, 1, 1);
 
 	while (true)
 	{
@@ -355,10 +322,34 @@ int debug_images(void)
 
 	// OLED_1in5_Display_Part(farfetchd, 0,0,56,56);
 	// OLED_1in5_Display_Part(farfetchd_gen3, 0,30,64,94);
-	Paint_DrawImage(pascal, 0, 0, 56, 56);
+	// Paint_DrawImage(pascal, 0, 0, 56, 56);
 	// Paint_DrawImage(monky2, 0, 0, 64, 64);
-	Paint_DrawImage(farfetchd_gen3, 64, 0, 64, 64);
-	Paint_DrawImage(chips, 0, 64, 24, 24);
+	// Paint_DrawImage(farfetchd_gen3, 64, 0, 64, 64);
+	// Paint_DrawImage(chips, 0, 64, 24, 24);
+
+	// for (int i = 0; i < 3; i++)
+	// { 
+	// 	Paint_DrawImage(Mametchi[i], i*39, 0, 38, 49);
+	// }
+	// for (int i = 5; i < 7; i++)
+	// {
+	// 	Paint_DrawImage(Mametchi[i], (i-5)*39, 50, 38, 49);
+	// }
+	
+	// Paint_ClearWindows(64, 0, 127, 24, WHITE);
+	// Paint_SetRotate(ROTATE_90);
+	// Paint_DrawImage(chips, 0, 0, 24, 24);
+	// Paint_DrawImage(chips, 1, 25, 24, 24);
+
+
+	// Paint_ClearWindows(0, 24, 63, 48, WHITE);
+	// Paint_DrawImage(chips, 0, 24, 24, 24);
+	// Paint_DrawNum( 10, 60, Paint.Image[0], &Font8, 1, 0xb, 0x0);
+	// Paint_DrawNum( 42, 60, Paint.Image[30], &Font8, 1, 0xb, 0x0);
+	// Paint_DrawNum( 70, 60, Paint.Image[25*64], &Font8, 1, 0xb, 0x0);
+
+	Paint_DrawImage(Mametchi[0], 0, 0, 38, 49);
+	Paint_DrawImage(Mametchi[0], 1, 49, 38, 49);
 
 	// Paint_DrawImage(farfetchd_gen3, 64, 64, 64, 64);
 
@@ -398,8 +389,10 @@ int debug_images(void)
 	0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,
 	0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,
 	0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,
-	0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,
+	0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0
 	};
+	// Paint_DrawImage(test17x16, 2, 50, 17, 16);
+	// Paint_DrawImage(test17x16, 3, 67, 17, 16);
 
 	// Display memory value associated with color in draw image function:
 	const unsigned char *image_buffer = test17x16;
@@ -448,15 +441,6 @@ int debug_images(void)
     //     }
 	// }
 	OLED_1in5_Display(BlackImage);
-
-	// OLED_SetWindow(40,40,46,42);
-	// OLED_WriteData(0xff);
-	// OLED_WriteData(0x00);
-	// OLED_WriteData(0xff);
-	// OLED_WriteData(0x00);
-	// OLED_WriteData(0xff);
-	// OLED_WriteData(0x00);
-
 
 }
 
@@ -530,52 +514,52 @@ int OLED_1in5_test(void)
 void RefreshIcons()
 {
     // clearing overlay
-	// clear function is shifted of 1 pixel in width axis (X)
-    Paint_ClearWindows(1, 0, 128, 24, BLACK);
-	Paint_ClearWindows(1, 104, 128, 128, BLACK);
+	// clear function is shifted of 1 pixel in width if breadboard and height if tama board: bug in clear windows
+	Paint_ClearWindows(0, 0, 127, 24, BLACK);
+	Paint_ClearWindows(0, 104, 127, 128, BLACK);
 
 	switch (game_.mainCursor)
 		{
 		case none:
 			break;
 		case food:
-			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			Paint_ClearWindows(1, 104, 128, 128, WHITE);
 			Paint_DrawImage(chips, 8, 104, 24, 24);
 			break;
 		case play:
-			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			Paint_ClearWindows(1, 104, 128, 128, WHITE);
 			Paint_DrawChar(41, 107, 'c', &Font20, 0xe, 0x3);
 			break;
 		case wash:
-			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			Paint_ClearWindows(1, 104, 128, 128, WHITE);
 			Paint_DrawChar(75, 107, 'd', &Font20, 0xe, 0x3);
 			break;
 		case heal:
-			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			Paint_ClearWindows(1, 104, 128, 128, WHITE);
 			Paint_DrawChar(107, 107, 'e', &Font20, 0xe, 0x3);
 			break;
 		case comm:
-			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			Paint_ClearWindows(1, 104, 128, 128, WHITE);
 			Paint_DrawChar(9, 0, 'f', &Font20, 0xe, 0x3);
 			break;
 		case bedtime:
-			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			Paint_ClearWindows(1, 104, 128, 128, WHITE);
 			Paint_DrawChar(41, 0, 'g', &Font20, 0xe, 0x3);
 			break;
 		case infos:
-			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			Paint_ClearWindows(1, 104, 128, 128, WHITE);
 			Paint_DrawChar(75, 0, 'h', &Font20, 0xe, 0x3);
 			break;
 		case settings:
-			// Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			// Paint_ClearWindows(1, 104, 128, 128, WHITE);
+			Paint_ClearWindows(1, 0, 128, 24, WHITE);
+			Paint_ClearWindows(1, 104, 128, 128, WHITE);
 			Paint_DrawChar(107, 0, 'i', &Font20, 0xe, 0x3);
 			break;
 

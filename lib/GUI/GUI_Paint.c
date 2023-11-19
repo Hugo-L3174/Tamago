@@ -195,6 +195,13 @@ void Paint_SetPixel(UWORD Xpoint, UWORD Ypoint, UWORD Color)
         Rdata = Rdata & (~(0xC0 >> ((X % 4)*2)));
         Paint.Image[Addr] = Rdata | ((Color << 6) >> ((X % 4)*2));
     }else if(Paint.Scale == 16) {
+        // pixel selection in screen address
+        // UBYTE screenShift = (X % 2)*4;
+        // UBYTE screenMask = 0xf0 >> screenShift;
+        // UDOUBLE pAddr = (X/2 + Y * 64);
+        // UBYTE screenByte = Paint.Image[pAddr];
+        // Paint.Image[pAddr] = (screenByte & ~screenMask) | Color;
+         
         UDOUBLE Addr = X / 2 + Y * Paint.WidthByte;
         UBYTE Rdata = Paint.Image[Addr];
         Color = Color % 16; // color scale divided in 16
@@ -809,49 +816,34 @@ void Paint_DrawImage(const unsigned char *image_buffer, UWORD xStart, UWORD ySta
     const UWORD screenWidthBytes = 64;
     UWORD imageWidthBytes = (W_Image%2==0)?(W_Image/2):W_Image/2+1; // 4bits scaling : W_Image/2
     UWORD imageHeightBytes = H_Image;
-	// UWORD w_byte=(W_Image%8)?(W_Image/8)+1:W_Image/8; // this is for 1 bit scaling
-    // UWORD w_byte = (W_Image%2==0)?(W_Image/2):W_Image/2+1; 
-    // UWORD w_byte=W_Image; //this is for 8bits scaling
-    UDOUBLE Addr = 0;
-	UDOUBLE pAddr = 0;
-
-    UBYTE screenMask = 0;
-    UBYTE imageMask = 0;
-    UBYTE imageShift;
-    UBYTE screenShift;
-    bool oddWidth = false;
-    // If the image width is uneven, the last segment of each
-    // line will contain both the last pixel of the line and the first pixel of the
-    // next. That will cause a skew in the image.
-    
-    if (W_Image%2==1){ // if width image is odd
-        oddWidth = true;
-        /* code */
-    }
+    // If the image width is uneven, the last segment of each line will contain both the last pixel of the line 
+    // and the first pixel of the next. That will cause a skew in the image.
+    UBYTE carry = 0;
     for (y = 0; y < H_Image; y++) {
-        for (x = 0; x < W_Image; x++) { // going through every pixel            
+        for (x = 0; x < W_Image; x++) { // going through every pixel  
             // pixel selection in image address
-            imageShift = (x % 2)*4; // shift 0 if even, 4 if odd 
-            imageMask = 0xf0 >> imageShift; // mask is 0xf0 if even, 0x0f if odd (1st half of char or 2nd half)
-            // pixel selection in screen address
-            screenShift = (x % 2)*4;
-            screenMask = 0xf0 >> screenShift;
+            UBYTE imageShift = (x % 2)*4; // shift 0 if even, 4 if odd 
+            UBYTE imageMask = 0xf0 >> imageShift; // mask is 0xf0 if even, 0x0f if odd (1st half of char or 2nd half)
+            // pixel selection in screen address            
+            UBYTE screenShift = ((x+xStart) % 2)*4; // take screen offset into account
+            UBYTE screenMask = 0xf0 >> screenShift;
             // full adresses 
-            Addr = x/2 + y * imageWidthBytes; // address of the char that has the desired pixel in the char array
-			pAddr = (xStart/2 +yStart*screenWidthBytes) + (x/2 + y * screenWidthBytes); // screen adress where to put the desired pixel
+            UDOUBLE Addr = x/2 + y * imageWidthBytes - carry; // address of the char that has the desired pixel in the char array
+			UDOUBLE pAddr = (xStart + x)/2 + (yStart + y) *screenWidthBytes ; // screen adress where to put the desired pixel
             // getting right pixel in byte in screen memory and in image data
             UBYTE imageByte = image_buffer[Addr];
             UBYTE screenByte = Paint.Image[pAddr];
             // selecting image pixel
-            imageByte = imageByte & imageMask;
+            // logic: if start offset is odd then image byte needs to be shifted back to correspond to the mask of the pixel to change in the screen
+            if(imageMask == 0xf0 && xStart%2==1){imageByte = (imageByte & imageMask) >> 4;}
+            else if(imageMask == 0x0f && xStart%2==1){imageByte = (imageByte & imageMask) << 4;}
+            else{imageByte = (imageByte & imageMask);}
             // clearing corresponding screen pixel then replace it by the desired image pixel then writing in the memory
-            Paint.Image[pAddr] = (screenByte & ~screenMask) | imageByte;
+            Paint.Image[pAddr] = (screenByte & ~screenMask) | imageByte ;
         }
+        // add a carry at the end of each line if width of image is odd
+        if (W_Image%2==1){carry++;};
     }
-    // Cas offset pair + taille image impaire
-
-    // Cas offset impair + taille image paire
-    // Cas offset impair + taille image impaire
 }
 
 // void Paint_DrawImage(const unsigned char *image, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image) 
@@ -875,16 +867,20 @@ void Paint_DrawImage(const unsigned char *image_buffer, UWORD xStart, UWORD ySta
 
 void Paint_DrawImage1(const unsigned char *image, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image) 
 {
-    int i,j; 
-		for(j = 0; j < H_Image; j++){
-			for(i = 0; i < W_Image; i++){
-				if(xStart+i < Paint.HeightMemory  &&  yStart+j < Paint.WidthMemory)//Exceeded part does not display
-					Paint_SetPixel(xStart + i, yStart + j, (*(image + j*W_Image*2 + i*2+1))<<8 | (*(image + j*W_Image*2 + i*2)));
-				//Using arrays is a property of sequential storage, accessing the original array by algorithm
-				//j*W_Image*2 			   Y offset
-				//i*2              	   X offset
-			}
-		} 
+    int x,y; 
+    UBYTE carry = 0;
+    UWORD imageWidthBytes = (W_Image%2==0)?(W_Image/2):W_Image/2+1; // 4bits scaling : W_Image/2
+    for(y = 0; y < H_Image; y++){
+        for(x = 0; x < W_Image; x++){
+            UBYTE imageShift = ((x+1) % 2)*4; // shift 0 if even, 4 if odd 
+            UBYTE imageMask = 0xf0 >> imageShift; // mask is 0xf0 if even, 0x0f if odd (1st half of char or 2nd half)
+            UDOUBLE Addr = x/2 + y * imageWidthBytes - carry; // address of the char that has the desired pixel in the char array
+            UBYTE imageByte = image[Addr];
+            Paint_SetPixel(xStart + x, yStart + y, imageByte);
+        }
+        // add a carry at the end of each line if width of image is odd
+        if (W_Image%2==1){carry++;};
+    } 
 }
 
 

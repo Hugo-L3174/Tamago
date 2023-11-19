@@ -50,6 +50,7 @@ static void OLED_InitReg(void)
 {
     OLED_WriteReg(0xae);  // turn off oled panel
 
+    #if BREADBOARD
     OLED_WriteReg(0x15);  // set column address
     OLED_WriteReg(0x00);  // start column   0
     OLED_WriteReg(0x7f);  // end column   127
@@ -58,11 +59,31 @@ static void OLED_InitReg(void)
     OLED_WriteReg(0x00);  // start row   0
     OLED_WriteReg(0x7f);  // end row   127
 
-    OLED_WriteReg(0x81);  // set contrast control
-    OLED_WriteReg(0xff);  // 0x80 by default, the higher the contrast val the lower the brightness and saturation
+    OLED_WriteReg(0xa0);  // segment remap
+    OLED_WriteReg(0x51);  // 01010001 
+                          // bits 0 and 1 define column remapping
+                          // bit 2 defines adress increment mode (horizontal/vertical)
+                          // bits 4 and 6 define com remapping
+    #endif
+
+    #if TAMA_BOARD
+    // screen is flipped so row and columns + iterations need to be flipped
+    OLED_WriteReg(0x15);  // set column address
+    OLED_WriteReg(0x00);  // start column   0
+    OLED_WriteReg(0x7f);  // end column   127
+
+    OLED_WriteReg(0x75);  // set row address
+    OLED_WriteReg(0x00);  // start row   0
+    OLED_WriteReg(0x7f);  // end row   127
 
     OLED_WriteReg(0xa0);  // segment remap
-    OLED_WriteReg(0x51);  // 51 (see doc parameters)
+    OLED_WriteReg(0x42);  // 01000010
+    // flipping bits 1 and 2 (adress remap set to 0 and nibble remap set to 1) mirrors vertically
+    // flipping bit 4 to 0 disables com remap
+    #endif
+
+    OLED_WriteReg(0x81);  // set contrast control
+    OLED_WriteReg(0x80);  // 0x80 by default, the higher the contrast val the lower the brightness and saturation
 
     OLED_WriteReg(0xa1);  // start line
     OLED_WriteReg(0x00);
@@ -76,15 +97,16 @@ static void OLED_InitReg(void)
     OLED_WriteReg(0x7f);
 
     OLED_WriteReg(0xb1);  // set phase length of display phase 1 (discharge of capacitance to reset pixel) and phase 2 (pre charge of capacitors)
-    OLED_WriteReg(0xf1);  // first 4 bits are display phase 1, last 4 are display phase 2
+    OLED_WriteReg(0x21);  // first 4 bits are display phase 1, last 4 are display phase 2
 
     OLED_WriteReg(0xb6);  // set phase length of display phase 3 (second pre charge of pixel: speed of charging process)
     OLED_WriteReg(0x0f);  
 
     // here we could set reg 0xb8/b9 to set gamma setting (pulse width)
     // higher value means wider pulse width so brighter pixels
-    // there are 16 presets of grayscale level , set by the first 4 bits of b9
-    // b8 is to make custom presets (16 next commands sent)
+    // there are 16 presets of grayscale level
+    // b8 is to make custom presets (16 next commands sent), b9 is to set to default presets
+    OLED_WriteReg(0xb9);
 
     OLED_WriteReg(0xb3);  // set dclk :  low freq: may flicker but lower energy consumption
     OLED_WriteReg(0xc1);  // first 4 bits are clock divide ratio , last 4 bits are oscillator frequency

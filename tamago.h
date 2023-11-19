@@ -28,15 +28,18 @@
 #include "pic/chips.h"
 #include "pic/C4Nar/pascal.h"
 
-#include "utils/menus.h"
+#include "pic/Mame/frontawkward.h"
+#include "pic/Mame/frontdown.h"
+#include "pic/Mame/fronthappy.h"
+#include "pic/Mame/frontmeh.h"
+#include "pic/Mame/frontwaving.h"
+#include "pic/Mame/goingleft.h"
+#include "pic/Mame/leftmouthop.h"
+#include "pic/Mame/sittinghappy.h"
+#include "pic/Mame/sittingmouthop.h"
+#include "pic/Mame/sittingsurprised.h"
 
 
-// defines to select which hardware to initialize
-#define SCREEN          1
-#define UPS             0
-#define BUTTONS         1
-#define BATTERY_MONITOR 0
-#define BUZZER          0
 
 
 // total number of possibilities for species (for random selection)
@@ -131,14 +134,9 @@ int tama_init(void);
 
 int enter_name(void);
 
-int debug_buttons(void);
-
 int debug_UPS(void);
 
-int debug_battery(void)
-{
-    
-};
+int debug_battery(void);
 
 int debug_images(void);
 
@@ -199,6 +197,9 @@ const unsigned char *duck[18] = {can128rgb1, can128rgb2, can128rgb3, can128rgb4,
                                  can128rgb7, can128rgb8, can128rgb9, can128rgb10, can128rgb11, can128rgb13, 
                                  can128rgb14, can128rgb15, can128rgb16, can128rgb17, can128rgb18};
 
+// Mametchi sprites are all 38x49 pixels
+const unsigned char *Mametchi[] = {fronthappy, frontwaving, frontmeh, frontawkward, goingleft, leftmouthop, frontdown, sittinghappy, sittingmouthop, sittingsurprised};
+enum Mame {fronthappyFrame, frontwavingFrame, frontmehFrame, frontawkwardFrame, goingleftFrame, leftmouthopenFrame, goingfrontFrame, sittinghappyFrame, sittingmouthopenFrame, sittingsurprisedFrame};
 
 /****************************************************************
 *                   Callback functions

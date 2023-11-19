@@ -23,6 +23,17 @@
 #define IIC_CMD        0X00
 #define IIC_RAM        0X40
 
+// defines for hardware config
+#define BREADBOARD		0
+#define TAMA_BOARD		1
+
+// defines to select which hardware to initialize
+#define SCREEN          1
+#define UPS             0
+#define BUTTONS         1
+#define BATTERY_MONITOR 0
+#define BUZZER          1
+#define BLUETOOTH       0
 
 /**
  * data
@@ -38,11 +49,19 @@
 #define OLED_TX         19 // GPIO 19 is spi0 TX (corresponds to MOSI)
 #define OLED_CLK        18 // also called SCK, is spi0 clock
 
+#if BREADBOARD
 #define BUZZ            14 // GPIO 14 (physical pin 19)	also PWM 7A
-
 #define LBUTT           13 // GPIO 13 (physical pin 17)
 #define MBUTT           12
 #define RBUTT           11
+#endif
+
+#if TAMA_BOARD
+#define BUZZ            7 // GPIO 7 is PWM B! not A
+#define LBUTT           12 
+#define MBUTT           11
+#define RBUTT           10
+#endif
 
 #define BATT_SDA        6  // GPIO 6 (physical 9)
 #define BATT_SDL        7  // GPIO 7 (physical 10)
