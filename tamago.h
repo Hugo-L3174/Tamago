@@ -10,7 +10,6 @@
 #include "pico/cyw43_arch.h"
 //#include "hardware/rtc.h"
 
-
 #include "lib/Config/DEV_Config.h"
 #include "lib/OLED/OLED_1in5.h"
 #include "lib/GUI/GUI_Paint.h"
@@ -19,41 +18,17 @@
 #include "lib/UPS/Pico_UPS.h"
 #include "lib/Battery/power_status.h"
 
-
-#include "pic/C4Nar/c1.h"
-#include "pic/C4Nar/farfetchd.h"
-#include "pic/pokemon.h"
-#include "pic/C4Nar/farfetchd_gen3.h"
-#include "pic/monky2.h"
-#include "pic/chips.h"
-#include "pic/C4Nar/pascal.h"
-
-#include "pic/Mame/frontawkward.h"
-#include "pic/Mame/frontdown.h"
-#include "pic/Mame/fronthappy.h"
-#include "pic/Mame/frontmeh.h"
-#include "pic/Mame/frontwaving.h"
-#include "pic/Mame/goingleft.h"
-#include "pic/Mame/leftmouthop.h"
-#include "pic/Mame/sittinghappy.h"
-#include "pic/Mame/sittingmouthop.h"
-#include "pic/Mame/sittingsurprised.h"
-
-
+#include "pic/sprites.h"
 
 
 // total number of possibilities for species (for random selection)
-#define species_nb  7
+#define species_nb  2
 
 
 /****************************************************************
 *      Internal types structs and definitions
 *
 ****************************************************************/
-
-// possible species
-enum species {canar, evangelion, tamago, calcifer, navet, laputarob, dqslime}; 
-const char *tamaSpecies[8] = {"Canar", "Angel", "Tamago", "Calcifer", "Navet", "Roboto", "Gluant"};
 
 // menus options for cursor
 enum mainMenu {none, food, play, wash, heal, comm, bedtime, infos, settings};
@@ -79,11 +54,15 @@ const char *settingsOptions[2] = {"Luminosite", "Retour"};
 // possible screens
 enum screens {mainScreen, foodScreen, playScreen, washScreen, healScreen, commScreen, bedtimeScreen, infosScreen, settingsScreen};
 
-// sprite position structure
+// possible frames for sprites
+enum frames {fronthappyFrame, frontwavingFrame, frontmehFrame, frontawkwardFrame, goingleftFrame, leftmouthopenFrame, goingfrontFrame, sittinghappyFrame, sittingmouthopenFrame, sittingsurprisedFrame};
+
+// sprite structure
 typedef struct{
     int xOrig;
     int yOrig;
     bool goingRight;
+    spriteFramePtr *frames;
 } sprite;
 
 // creature structure
@@ -192,14 +171,6 @@ float old_voltage;
 bool battery_status = true;
 char *power_str = "UNKNOWN";
 
-// Sprite structure
-const unsigned char *duck[18] = {can128rgb1, can128rgb2, can128rgb3, can128rgb4, can128rgb5, can128rgb6, 
-                                 can128rgb7, can128rgb8, can128rgb9, can128rgb10, can128rgb11, can128rgb13, 
-                                 can128rgb14, can128rgb15, can128rgb16, can128rgb17, can128rgb18};
-
-// Mametchi sprites are all 38x49 pixels
-const unsigned char *Mametchi[] = {fronthappy, frontwaving, frontmeh, frontawkward, goingleft, leftmouthop, frontdown, sittinghappy, sittingmouthop, sittingsurprised};
-enum Mame {fronthappyFrame, frontwavingFrame, frontmehFrame, frontawkwardFrame, goingleftFrame, leftmouthopenFrame, goingfrontFrame, sittinghappyFrame, sittingmouthopenFrame, sittingsurprisedFrame};
 
 /****************************************************************
 *                   Callback functions

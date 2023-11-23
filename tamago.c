@@ -100,7 +100,7 @@ int OLED_canarticho(void)
 
 	while (true)
 	{
-		Paint_DrawBitMap(duck[frameIndex]);
+		Paint_DrawBitMap(Duck[frameIndex]);
 		OLED_1in5_Display(ScreenImage_);
 		DEV_Delay_ms(100);	
 		Paint_Clear(BLACK);	
@@ -131,7 +131,8 @@ int tama_init(void)
 	// initialize random species
 	int time = time_us_32(); //get_absolute_time();
 	srand(time);
-	strcpy(tama_.species, tamaSpecies[rand() % (species_nb + 1)]); // +1 to get full range 
+	int randomSpecies = rand() % (species_nb + 1); // +1 to get full range with modulo (?)
+	strcpy(tama_.species, tamaSpecies[randomSpecies]);  
 	// initialize tama values
 	strcpy(tama_.name, "Zero");
 	tama_.hunger = 3;
@@ -139,10 +140,8 @@ int tama_init(void)
 	tama_.iq = 10;
 	tama_.sick = 0;
 	tama_.happiness = 3;
-	// initialize tama position and movement
-	tama_.sprite = (sprite){.xOrig = 0, .yOrig = 32, .goingRight = true};
-
-	// from the species, create the image loop of the tama pet?
+	// initialize tama sprite, position and movement
+	tama_.sprite = (sprite){.frames = tamaSprites[randomSpecies], .xOrig = 0, .yOrig = 32, .goingRight = true};
 
 }
 
@@ -262,7 +261,7 @@ int debug_overlay(void)
 	gpio_set_irq_enabled(MBUTT, GPIO_IRQ_EDGE_RISE , true);
 	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
 
-	Paint_DrawImage(monky2, tama_.sprite.xOrig, tama_.sprite.yOrig, 64, 64);
+	Paint_DrawImage(tama_.sprite.frames[frontawkwardFrame], tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
 	OLED_1in5_Display(ScreenImage_);
 
 	while (true)
@@ -344,13 +343,16 @@ int debug_images(void)
 
 	// Paint_ClearWindows(0, 24, 63, 48, WHITE);
 	// Paint_DrawImage(chips, 0, 24, 24, 24);
-	// Paint_DrawNum( 10, 60, Paint.Image[0], &Font8, 1, 0xb, 0x0);
-	// Paint_DrawNum( 42, 60, Paint.Image[30], &Font8, 1, 0xb, 0x0);
-	// Paint_DrawNum( 70, 60, Paint.Image[25*64], &Font8, 1, 0xb, 0x0);
+	Paint_DrawNum( 0, 0, 0, &Font8, 0, 0xb, 0x2);
+	Paint_DrawNum( 0, 10, 0, &Font8, 1, 0xb, 0x2);
+	Paint_DrawNum( 30, 0, -4, &Font8, 0, 0xb, 0x2);
+	Paint_DrawNum( 30, 10, 0.3, &Font8, 1, 0xb, 0x2);
+	Paint_DrawNum( 60, 0, -4.3, &Font8, 1, 0xb, 0x2);
+	Paint_DrawNum( 60, 10, 4.3, &Font8, 1, 0xb, 0x2);
 
-	Paint_DrawImage(Mametchi[0], 0, 0, 38, 49);
-	Paint_DrawImage(Mametchi[0], 1, 49, 38, 49);
-
+	// Paint_DrawImage(Mametchi[0], 0, 0, 38, 49);
+	// Paint_DrawImage(Mametchi[0], 1, 49, 38, 49);
+	
 	// Paint_DrawImage(farfetchd_gen3, 64, 64, 64, 64);
 
 	// 2x2x4 4 by for
@@ -571,7 +573,7 @@ void RefreshIcons()
 void RefreshSprite()
 {
     Paint_DrawRectangle(1, 25, 128, 103, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-	Paint_DrawImage(monky2, tama_.sprite.xOrig, tama_.sprite.yOrig, 64, 64);
+	Paint_DrawImage(tama_.sprite.frames[fronthappyFrame], tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
     spriteToUpdate_ = false;
 }
 

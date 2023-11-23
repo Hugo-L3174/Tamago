@@ -666,11 +666,11 @@ void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char * pString, cFONT
 /******************************************************************************
 function:	Display number
 parameter:
-    Xstart           ：X coordinate
+    Xstart           : X coordinate
     Ystart           : Y coordinate
-    Nummber          : The number displayed
-    Font             ：A structure pointer that displays a character size
-	Digit						 : Fractional width
+    Number           : The number displayed
+    Font             : A structure pointer that displays a character size
+	Digit			 : Fractional width
     Color_Foreground : Select the foreground color
     Color_Background : Select the background color
 ******************************************************************************/
@@ -684,17 +684,25 @@ void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint, double Number,
 	int temp = Number;
 	float decimals;
 	uint8_t i;
+    bool neg = false;
     if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
         return;
     }
 
+    // Handle negative number
+    if(Number < 0){
+        neg = true;
+        Number = -Number;
+    }
+
+    // Handles digits after 0
 	if(Digit > 0) {		
         decimals = Number - temp;
 		for(i=Digit; i > 0; i--) {
 			decimals*=10;
 		}
 		temp = decimals;
-		//Converts a number to a string
+		// put digits in an array
 		for(i=Digit; i>0; i--) {
 			Num_Array[Num_Bit] = temp % 10 + '0';
 			Num_Bit++;
@@ -705,71 +713,34 @@ void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint, double Number,
 	}
 
 	temp = Number;
-    //Converts a number to a string
+    
+    // add at least one character if zero value (otherwise nothing is displayed)
+    if(Number == 0){
+        Num_Array[Num_Bit] = '0';
+        Num_Bit++;
+    }
+    // put integer part of the number in the array
     while (temp) {
         Num_Array[Num_Bit] = temp % 10 + '0';
         Num_Bit++;
         temp /= 10;
     }
+    // add the sign in the end if negative
+    if(neg){
+        Num_Array[Num_Bit] = '-';
+        Num_Bit++;
+    }
 		
-    //The string is inverted
+    // the string is inverted
     while (Num_Bit > 0) {
         Str_Array[Str_Bit] = Num_Array[Num_Bit - 1];
         Str_Bit ++;
         Num_Bit --;
     }
 
-    //show
+    // draw the converted string
     Paint_DrawString_EN(Xpoint, Ypoint, (const char*)pStr, Font, Color_Background, Color_Foreground);
 }
-
-// void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint,const char * Number,
-//                 sFONT* Font, UWORD Digit,UWORD Color_Foreground, UWORD Color_Background)
-// { 
-//     uint8_t Str_Array[ARRAY_LEN] = {0};
-//     uint8_t *pStr = Str_Array;
-//     uint8_t i, len = 0;
-//     int16_t arr[3] = {0, 0, 0};
-//     int16_t *p = arr;
-//     if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
-//         Debug("Paint_DisNum Input exceeds the normal display range\r\n");
-//         return;
-//     }
-
-//     while(Number[len] != '\0') {  
-//       len++;                                    //get total length
-//       (*p)++;                                   //get the integer part length 
-//       if(Number[len] == '.') {
-//         arr[2] = 1;
-//         arr[0]--;
-//         p++;               //get fractional part length
-//       }
-//     }
-
-//     if(Digit > 0) {    
-//       if(Digit <= arr[1]) {                     
-//         for(i=0; i<=len-(arr[1]-Digit); i++)      //cut some Number
-//           Str_Array[i] = Number[i];
-//       }
-//       else {
-//         for(i=0; i<=len+Digit-arr[1]; i++) {
-//           if(i == len && arr[2] == 0)
-//             Str_Array[i] = '.';
-//           else if(i >= len)                           //add '0'
-//             Str_Array[i] = '0';
-//           else
-//             Str_Array[i] = Number[i];
-//         }
-//       }
-//     }
-//     else
-//       for(i=0; i<=len-arr[1]-arr[2]; i++) {
-//         Str_Array[i] = Number[i];
-//         }
-  
-//     //show
-//     Paint_DrawString_EN(Xpoint, Ypoint, (const char*)pStr, Font, Color_Background, Color_Foreground);
-// }
 
 /******************************************************************************
 function:	Display time
