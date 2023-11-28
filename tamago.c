@@ -527,42 +527,42 @@ void RefreshIcons()
 		case food:
 			Paint_ClearWindows(1, 0, 128, 24, WHITE);
 			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawImage(chips, 8, 104, 24, 24);
+			Paint_DrawImage(chips, 4, 104, 24, 24);
 			break;
 		case play:
 			Paint_ClearWindows(1, 0, 128, 24, WHITE);
 			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawChar(41, 107, 'c', &Font20, 0xe, 0x3);
+			Paint_DrawImage(activities, 36, 104, 24, 24);
 			break;
 		case wash:
 			Paint_ClearWindows(1, 0, 128, 24, WHITE);
 			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawChar(75, 107, 'd', &Font20, 0xe, 0x3);
+			Paint_DrawImage(toilet, 68, 104, 24, 24);
 			break;
 		case heal:
 			Paint_ClearWindows(1, 0, 128, 24, WHITE);
 			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawChar(107, 107, 'e', &Font20, 0xe, 0x3);
+			Paint_DrawImage(med, 100, 104, 24, 24);
 			break;
 		case comm:
 			Paint_ClearWindows(1, 0, 128, 24, WHITE);
 			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawChar(9, 0, 'f', &Font20, 0xe, 0x3);
+			Paint_DrawImage(connection, 4, 0, 24, 24);
 			break;
 		case bedtime:
 			Paint_ClearWindows(1, 0, 128, 24, WHITE);
 			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawChar(41, 0, 'g', &Font20, 0xe, 0x3);
+			Paint_DrawImage(lights, 36, 0, 24, 24);
 			break;
 		case infos:
 			Paint_ClearWindows(1, 0, 128, 24, WHITE);
 			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawChar(75, 0, 'h', &Font20, 0xe, 0x3);
+			Paint_DrawImage(informations, 68, 0, 24, 24);
 			break;
 		case settings:
 			Paint_ClearWindows(1, 0, 128, 24, WHITE);
 			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawChar(107, 0, 'i', &Font20, 0xe, 0x3);
+			Paint_DrawImage(parameters, 100, 0, 24, 24);
 			break;
 
 		}

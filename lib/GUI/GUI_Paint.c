@@ -809,8 +809,12 @@ void Paint_DrawImage(const unsigned char *image_buffer, UWORD xStart, UWORD ySta
             if(imageMask == 0xf0 && xStart%2==1){imageByte = (imageByte & imageMask) >> 4;}
             else if(imageMask == 0x0f && xStart%2==1){imageByte = (imageByte & imageMask) << 4;}
             else{imageByte = (imageByte & imageMask);}
-            // clearing corresponding screen pixel then replace it by the desired image pixel then writing in the memory
-            Paint.Image[pAddr] = (screenByte & ~screenMask) | imageByte ;
+            // If byte to write is a transparent byte then leave previous byte without overwriting (hacky way to do transparency)
+            if (imageByte != 0x00)
+            {
+                // clearing corresponding screen pixel then replace it by the desired image pixel then writing in the memory
+                Paint.Image[pAddr] = (screenByte & ~screenMask) | imageByte ;
+            }
         }
         // add a carry at the end of each line if width of image is odd
         if (W_Image%2==1){carry++;};

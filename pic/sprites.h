@@ -1,11 +1,16 @@
+// Tests
 #include "C4Nar/c1.h"
 #include "C4Nar/farfetchd.h"
 #include "pokemon.h"
 #include "C4Nar/farfetchd_gen3.h"
 #include "monky2.h"
-#include "chips.h"
 #include "C4Nar/pascal.h"
 
+// Icons sprites
+#include "icons.h"
+
+// Mametchi sprites
+// #include "Mame.h"
 #include "Mame/frontawkward.h"
 #include "Mame/frontdown.h"
 #include "Mame/fronthappy.h"
