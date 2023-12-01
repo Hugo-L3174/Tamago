@@ -262,8 +262,8 @@ void Paint_ClearWindows(UWORD Xstart, UWORD Ystart, UWORD Xend, UWORD Yend, UWOR
     UWORD X, Y;
 
     if(Paint.Scale == 16) {
-        for (Y = Ystart; Y < Yend; Y++) {
-            for (X = Xstart; X < Xend; X++ ) { // 2 pixels =  1 byte
+        for (Y = Ystart; Y < Yend + 1; Y++) {
+            for (X = Xstart; X < Xend + 1; X++ ) {
                 UDOUBLE Addr = X/2 + Y*Paint.WidthByte;
                 Color = Color & 0x0f;
                 Paint.Image[Addr] = (Color<<4) | Color;
@@ -396,7 +396,7 @@ void Paint_DrawRectangle(UWORD Xstart, UWORD Ystart, UWORD Xend, UWORD Yend,
 
     if (Draw_Fill) {
         UWORD Ypoint;
-        for(Ypoint = Ystart; Ypoint < Yend; Ypoint++) {
+        for(Ypoint = Ystart; Ypoint < Yend +1; Ypoint++) {
             Paint_DrawLine(Xstart, Ypoint, Xend, Ypoint, Color , Line_width, LINE_STYLE_SOLID);
         }
     } else {
@@ -414,7 +414,7 @@ parameter:
     X_Center  ：Center X coordinate
     Y_Center  ：Center Y coordinate
     Radius    ：circle Radius
-    Color     ：The color of the ：circle segment
+    Color     ：The color of the circle segment
     Line_width: Line width
     Draw_Fill : Whether to fill the inside of the Circle
 ******************************************************************************/

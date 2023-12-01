@@ -138,6 +138,12 @@ void RefreshSprite(void);
 // Refresh whole screen for menu change
 void RefreshMenu(void);
 
+// GUI utils
+void DrawAllIcons(void);
+void ClearIconsArea(UWORD Color);
+void UserEnterString(void);
+void UserInitRTC();
+
 /****************************************************************
 *                   Internal global variables
 *

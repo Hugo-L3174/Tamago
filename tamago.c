@@ -132,6 +132,7 @@ int tama_init(void)
 	int time = time_us_32(); //get_absolute_time();
 	srand(time);
 	int randomSpecies = rand() % (species_nb + 1); // +1 to get full range with modulo (?)
+	randomSpecies = mametchi;
 	strcpy(tama_.species, tamaSpecies[randomSpecies]);  
 	// initialize tama values
 	strcpy(tama_.name, "Zero");
@@ -141,7 +142,7 @@ int tama_init(void)
 	tama_.sick = 0;
 	tama_.happiness = 3;
 	// initialize tama sprite, position and movement
-	tama_.sprite = (sprite){.frames = tamaSprites[randomSpecies], .xOrig = 0, .yOrig = 32, .goingRight = true};
+	tama_.sprite = (sprite){.frames = tamaSprites[randomSpecies], .xOrig = 0, .yOrig = 40, .goingRight = true};
 
 }
 
@@ -513,56 +514,72 @@ int OLED_1in5_test(void)
 	}
 }
 
+void ClearIconsArea(UWORD Color)
+{
+	Paint_ClearWindows(0, 0, 127, 32, Color);
+	Paint_ClearWindows(0, 95, 127, 127, Color);
+}
+
+void DrawAllIcons()
+{
+	Paint_DrawImage(chips, 4, 100, 24, 24);
+	Paint_DrawImage(activities, 36, 100, 24, 24);
+	Paint_DrawImage(toilet, 68, 100, 24, 24);
+	Paint_DrawImage(med, 100, 100, 24, 24);
+	Paint_DrawImage(connection, 4, 4, 24, 24);
+	Paint_DrawImage(lights, 36, 4, 24, 24);
+	Paint_DrawImage(informations, 68, 4, 24, 24);
+	Paint_DrawImage(parameters, 100, 4, 24, 24);
+}
+
+void EnterString()
+{
+	/*TODO
+	Display blinking cursor at the top
+	Display azerty letters to select + backspace and enter buttons
+	*/
+}
+
 void RefreshIcons()
 {
     // clearing overlay
-	// clear function is shifted of 1 pixel in width if breadboard and height if tama board: bug in clear windows
-	Paint_ClearWindows(0, 0, 127, 24, BLACK);
-	Paint_ClearWindows(0, 104, 127, 128, BLACK);
+	ClearIconsArea(BLACK);
 
 	switch (game_.mainCursor)
 		{
 		case none:
 			break;
 		case food:
-			Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawImage(chips, 4, 104, 24, 24);
+			Paint_DrawCircle(17, 112, 16, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
+			DrawAllIcons();
 			break;
 		case play:
-			Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawImage(activities, 36, 104, 24, 24);
+			Paint_DrawCircle(49, 112, 16, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
+			DrawAllIcons();
 			break;
 		case wash:
-			Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawImage(toilet, 68, 104, 24, 24);
+			Paint_DrawCircle(81, 112, 16, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
+			DrawAllIcons();
 			break;
 		case heal:
-			Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawImage(med, 100, 104, 24, 24);
+			Paint_DrawCircle(112, 112, 16, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
+			DrawAllIcons();
 			break;
 		case comm:
-			Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawImage(connection, 4, 0, 24, 24);
+			Paint_DrawCircle(17, 17, 16, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
+			DrawAllIcons();
 			break;
 		case bedtime:
-			Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawImage(lights, 36, 0, 24, 24);
+			Paint_DrawCircle(49, 17, 16, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
+			DrawAllIcons();
 			break;
 		case infos:
-			Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawImage(informations, 68, 0, 24, 24);
+			Paint_DrawCircle(81, 17, 16, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
+			DrawAllIcons();
 			break;
 		case settings:
-			Paint_ClearWindows(1, 0, 128, 24, WHITE);
-			Paint_ClearWindows(1, 104, 128, 128, WHITE);
-			Paint_DrawImage(parameters, 100, 0, 24, 24);
+			Paint_DrawCircle(112, 17, 16, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
+			DrawAllIcons();
 			break;
 
 		}
@@ -572,7 +589,7 @@ void RefreshIcons()
 
 void RefreshSprite()
 {
-    Paint_DrawRectangle(1, 25, 128, 103, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+    Paint_DrawRectangle(0, 34, 127, 95, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
 	Paint_DrawImage(tama_.sprite.frames[fronthappyFrame], tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
     spriteToUpdate_ = false;
 }
