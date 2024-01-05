@@ -821,6 +821,50 @@ void Paint_DrawImage(const unsigned char *image_buffer, UWORD xStart, UWORD ySta
     }
 }
 
+// same function but flipped horizontally
+void Paint_DrawImage_Flipped(const unsigned char *image_buffer, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image) 
+{
+    UWORD x, y, x_im;
+    const UWORD screenWidthBytes = 64;
+    UWORD imageWidthBytes = (W_Image%2==0)?(W_Image/2):W_Image/2+1; // 4bits scaling : W_Image/2
+    UWORD imageHeightBytes = H_Image;
+    // If the image width is uneven, the last segment of each line will contain both the last pixel of the line 
+    // and the first pixel of the next. That will cause a skew in the image.
+    UBYTE carry = 0;
+    for (y = 0; y < H_Image; y++) {
+        x_im = W_Image - 1;
+        for (x = 0; x < W_Image; x++) { // going through every pixel  
+            // pixel selection in image address
+            UBYTE imageShift = (x_im % 2)*4; // shift 0 if even, 4 if odd 
+            UBYTE imageMask = 0xf0 >> imageShift; // mask is 0xf0 if even, 0x0f if odd (1st half of char or 2nd half)
+            // pixel selection in screen address            
+            UBYTE screenShift = ((x+xStart) % 2)*4; // take screen offset into account
+            UBYTE screenMask = 0xf0 >> screenShift;
+            // full adresses 
+            UDOUBLE Addr = x_im/2 + y * imageWidthBytes - carry; // address of the char that has the desired pixel in the char array
+			UDOUBLE pAddr = (xStart + x)/2 + (yStart + y) *screenWidthBytes ; // screen adress where to put the desired pixel
+            // getting right pixel in byte in screen memory and in image data
+            UBYTE imageByte = image_buffer[Addr];
+            UBYTE screenByte = Paint.Image[pAddr];
+            // selecting image pixel
+            // logic: if start offset is odd then image byte needs to be shifted back to correspond to the mask of the pixel to change in the screen
+            if(imageMask == 0xf0 && xStart%2==0){imageByte = (imageByte & imageMask) >> 4;}
+            else if(imageMask == 0x0f && xStart%2==0){imageByte = (imageByte & imageMask) << 4;}
+            else{imageByte = (imageByte & imageMask);}
+            // If byte to write is a transparent byte then leave previous byte without overwriting (hacky way to do transparency)
+            if (imageByte != 0x00)
+            {
+                // clearing corresponding screen pixel then replace it by the desired image pixel then writing in the memory
+                Paint.Image[pAddr] = (screenByte & ~screenMask) | imageByte ;
+            }
+            x_im--;
+
+        }
+        // add a carry at the end of each line if width of image is odd
+        if (W_Image%2==1){carry++;};
+    }
+}
+
 // void Paint_DrawImage(const unsigned char *image, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image) 
 // {
 //     int i,j; 

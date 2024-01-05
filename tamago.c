@@ -240,7 +240,6 @@ int debug_overlay(void)
 		{
 			RefreshMenu();
 			displayToUpdate_ = true;
-			// OLED_1in5_Display(ScreenImage_);
 		}
 
 		if (game_.currentScreen == mainScreen)
@@ -322,15 +321,16 @@ int debug_images(void)
 
 	// Paint_ClearWindows(0, 24, 63, 48, WHITE);
 	// Paint_DrawImage(chips, 0, 24, 24, 24);
-	Paint_DrawNum( 0, 0, 0, &Font8, 0, 0xb, 0x2);
-	Paint_DrawNum( 0, 10, 0, &Font8, 1, 0xb, 0x2);
-	Paint_DrawNum( 30, 0, -4, &Font8, 0, 0xb, 0x2);
-	Paint_DrawNum( 30, 10, 0.3, &Font8, 1, 0xb, 0x2);
-	Paint_DrawNum( 60, 0, -4.3, &Font8, 1, 0xb, 0x2);
-	Paint_DrawNum( 60, 10, 4.3, &Font8, 1, 0xb, 0x2);
+	// Paint_DrawNum( 0, 0, 0, &Font8, 0, 0xb, 0x2);
+	// Paint_DrawNum( 0, 10, 0, &Font8, 1, 0xb, 0x2);
+	// Paint_DrawNum( 30, 0, -4, &Font8, 0, 0xb, 0x2);
+	// Paint_DrawNum( 30, 10, 0.3, &Font8, 1, 0xb, 0x2);
+	// Paint_DrawNum( 60, 0, -4.3, &Font8, 1, 0xb, 0x2);
+	// Paint_DrawNum( 60, 10, 4.3, &Font8, 1, 0xb, 0x2);
 
-	// Paint_DrawImage(Mametchi[0], 0, 0, 38, 49);
-	// Paint_DrawImage(Mametchi[0], 1, 49, 38, 49);
+	Paint_DrawImage(Mametchi[0], 0, 0, 38, 49);
+	Paint_DrawImage_Flipped(Mametchi[0], 0, 49, 38, 49);
+	// Paint_DrawImage_Flipped(Mametchi[0], 55, 49, 38, 49);
 	
 	// Paint_DrawImage(farfetchd_gen3, 64, 64, 64, 64);
 
@@ -372,8 +372,8 @@ int debug_images(void)
 	0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,
 	0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0
 	};
-	// Paint_DrawImage(test17x16, 2, 50, 17, 16);
-	// Paint_DrawImage(test17x16, 3, 67, 17, 16);
+	Paint_DrawImage_Flipped(test17x16, 64, 50, 17, 16);
+	Paint_DrawImage(test17x16, 64, 30, 17, 16);
 
 	// Display memory value associated with color in draw image function:
 	const unsigned char *image_buffer = test17x16;
@@ -675,7 +675,14 @@ void RefreshIcons()
 void RefreshSprite()
 {
     Paint_DrawRectangle(0, 34, 127, 95, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-	Paint_DrawImage(tama_.sprite.currentFrame, tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
+	if (!tama_.sprite.goingRight)
+	{
+		Paint_DrawImage(tama_.sprite.currentFrame, tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
+	}else
+	{
+		Paint_DrawImage_Flipped(tama_.sprite.currentFrame, tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
+	}
+	
 }
 
 void RefreshMenu()
