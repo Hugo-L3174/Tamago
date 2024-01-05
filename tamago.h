@@ -63,6 +63,7 @@ typedef struct{
     int yOrig;
     bool goingRight;
     spriteFramePtr *frames;
+    spriteFramePtr currentFrame;
 } sprite;
 
 // creature structure
@@ -93,6 +94,13 @@ typedef struct{
 } game;
 
 
+// basic structure for movement: holds previous and objective coordinates
+typedef struct{
+    int prevX;
+    int prevY;
+    int targetX;
+    int targetY;
+} move;
 
 
 /****************************************************************
@@ -101,8 +109,6 @@ typedef struct{
 ****************************************************************/
 
 int OLED_1in5_test(void);
-
-int OLED_canarticho(void);
 
 int buzzTest(void);
 
@@ -138,6 +144,13 @@ void RefreshSprite(void);
 // Refresh whole screen for menu change
 void RefreshMenu(void);
 
+// game mechanics
+
+// should be blocking function
+void feed(const unsigned char *foodSprite, int foodVal);
+void walk(int movX, int movY);
+void idleWalk();
+
 // GUI utils
 void DrawAllIcons(void);
 void ClearIconsArea(UWORD Color);
@@ -156,13 +169,14 @@ UBYTE *ScreenImage_;
 kreatur tama_;
 
 // game instance
-game game_ = {none, junk, mainScreen};
+game game_ = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 // Update flags
 volatile bool spriteToUpdate_ = false;
 volatile bool iconsToUpdate_ = false;
 volatile bool menuToUpdate_ = false;
 volatile bool cursorToUpdate_ = false;
+bool displayToUpdate_ = false;
 
 // Timers for timed callbacks
 struct repeating_timer hungerTimer_, spriteMoveTimer_;
@@ -170,6 +184,9 @@ struct repeating_timer hungerTimer_, spriteMoveTimer_;
 // timer for debounce control
 unsigned long time;
 const int delayTime = 200; // Delay between every push button
+
+// movement variable
+move movement_;
 
 // Battery monitoring variables
 bool old_battery_status;
@@ -188,34 +205,47 @@ bool hunger_callback(struct repeating_timer *t) {
     return true;
 }
 
+// to be called regularly to make the idle sprite animation
 bool spriteMove_callback(struct repeating_timer *t) {
-    if (tama_.sprite.goingRight && tama_.sprite.xOrig <= 49)
-    {
-        tama_.sprite.xOrig += 15;
-        // how to change y?
-    }
-    else if (tama_.sprite.goingRight && tama_.sprite.xOrig > 49)
-    {
-        tama_.sprite.goingRight = false;
-        tama_.sprite.xOrig -= 15;
-    }
-    else if (!tama_.sprite.goingRight && tama_.sprite.xOrig >= 15)
-    {
-        tama_.sprite.xOrig -= 15;
-    }
-    else if (!tama_.sprite.goingRight && tama_.sprite.xOrig < 15)
-    {
-        tama_.sprite.goingRight = true;
-        tama_.sprite.xOrig += 15;
-    }
-    else // error case: going up
-    {
-        tama_.sprite.yOrig += 10;
-    }
-    
-    spriteToUpdate_ = true;
-    
+    idleWalk();
     return true;
+}
+
+// TODO maybe only 1 callback to walk, with user data number of frames to decomp movement
+
+// called by the idle animation : 1st frame
+int64_t walk_1_callback(alarm_id_t id, void *user_data) {
+    // move* movement = (move*)user_data;
+    tama_.sprite.currentFrame = tama_.sprite.frames[leftmouthopenFrame];
+	tama_.sprite.xOrig = movement_.prevX + (movement_.targetX * 1.0/3.0);
+	tama_.sprite.yOrig = movement_.prevY + (movement_.targetY * 1.0/3.0);
+	spriteToUpdate_ = true;
+    return 0;
+}
+
+// called by the idle animation : 2nd frame
+int64_t walk_2_callback(alarm_id_t id, void *user_data) {
+    tama_.sprite.currentFrame = tama_.sprite.frames[goingleftFrame];
+    tama_.sprite.xOrig = movement_.prevX + (movement_.targetX * 2.0/3.0);
+	tama_.sprite.yOrig = movement_.prevY + (movement_.targetY * 2.0/3.0);
+	spriteToUpdate_ = true;
+    return 0;
+}
+
+// called by the idle animation : 3rd frame
+int64_t walk_3_callback(alarm_id_t id, void *user_data) {
+    tama_.sprite.currentFrame = tama_.sprite.frames[leftmouthopenFrame];
+    tama_.sprite.xOrig = movement_.prevX + movement_.targetX;
+	tama_.sprite.yOrig = movement_.prevY + movement_.targetY;
+	spriteToUpdate_ = true;
+    return 0;
+}
+
+// called by the idle animation : final frame (stop moving)
+int64_t walk_4_callback(alarm_id_t id, void *user_data) {
+    tama_.sprite.currentFrame = tama_.sprite.frames[fronthappyFrame];
+    spriteToUpdate_ = true;
+    return 0;
 }
 
 // algo logic: core 0 initializes everything and core 1 should update the looping idle animation 

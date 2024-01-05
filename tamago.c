@@ -62,14 +62,11 @@ int image_init()
 	Paint_SetScale(16);
 	// reset buffer
 	Paint_Clear(BLACK);
-	// send buffer to oled screen to print
-	// here: not needed since we used the OLED_1in5_Clear() in hardware init
-	// OLED_1in5_Display(ScreenImage); 
-
 }
 
 // This is the main loop for core 0
 int main() {
+	// init debounce timer
 	time = to_ms_since_boot(get_absolute_time());
 	if(hardware_setup() != 0) {
 		return -1;
@@ -77,9 +74,17 @@ int main() {
 	image_init();
 	tama_init();
 
-	// Main loop
+/* TODO MULTICORE
+on lance le core1 en mode attente de fonctions et on fait se passer aux cores la config interne du tama: comme ça on compute en thread la config, on la passe
+au core0 qui update les frames intermédiaires et c'est repassé pour les 3 frames
 
-	// OLED_canarticho();
+mieux: image est partagée entre les cores avec un mutex: mutex_try_enter()
+power down avec  multicore_reset_core1()
+
+au lieu d'une seule screen image, faire 3 images: une pour le sprite et deux pour les menus haut et bas: peut être threadé
+
+*/
+	// Main loop
 	// buzzTest();
 	
 	// debug_battery();
@@ -89,42 +94,6 @@ int main() {
 
 }
 
-
-int OLED_canarticho(void)
-{	
-	Paint_SelectImage(ScreenImage_);
-	DEV_Delay_ms(50);
-	Paint_Clear(BLACK);
-
-	int frameIndex = 0;
-
-	while (true)
-	{
-		Paint_DrawBitMap(Duck[frameIndex]);
-		OLED_1in5_Display(ScreenImage_);
-		DEV_Delay_ms(100);	
-		Paint_Clear(BLACK);	
-
-		if (gpio_get(RBUTT) && frameIndex < 16)
-		{
-			frameIndex++;
-		}
-		else if (gpio_get(RBUTT) && frameIndex == 16)
-		{
-			frameIndex = 0;
-		}
-		else if (gpio_get(LBUTT) && frameIndex > 0)
-		{
-			frameIndex--;
-		}
-		else if (gpio_get(LBUTT) && frameIndex == 0)
-		{
-			frameIndex = 16;
-		}
-		
-
-	}
-}
 
 int tama_init(void)
 {
@@ -142,7 +111,7 @@ int tama_init(void)
 	tama_.sick = 0;
 	tama_.happiness = 3;
 	// initialize tama sprite, position and movement
-	tama_.sprite = (sprite){.frames = tamaSprites[randomSpecies], .xOrig = 0, .yOrig = 40, .goingRight = true};
+	tama_.sprite = (sprite){.frames = tamaSprites[randomSpecies], .currentFrame = tamaSprites[randomSpecies][0], .xOrig = 0, .yOrig = 40, .goingRight = true};
 
 }
 
@@ -262,7 +231,7 @@ int debug_overlay(void)
 	gpio_set_irq_enabled(MBUTT, GPIO_IRQ_EDGE_RISE , true);
 	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
 
-	Paint_DrawImage(tama_.sprite.frames[frontawkwardFrame], tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
+	Paint_DrawImage(tama_.sprite.currentFrame, tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
 	OLED_1in5_Display(ScreenImage_);
 
 	while (true)
@@ -270,7 +239,8 @@ int debug_overlay(void)
 		if (menuToUpdate_ || cursorToUpdate_)
 		{
 			RefreshMenu();
-			OLED_1in5_Display(ScreenImage_);
+			displayToUpdate_ = true;
+			// OLED_1in5_Display(ScreenImage_);
 		}
 
 		if (game_.currentScreen == mainScreen)
@@ -278,15 +248,23 @@ int debug_overlay(void)
 			if (iconsToUpdate_)
 			{
 				RefreshIcons();
-				OLED_1in5_Display(ScreenImage_);
+				displayToUpdate_ = true;
+				iconsToUpdate_ = false;
 			}
 
 			// update sprite if position changed
 			if (spriteToUpdate_)
 			{
 				RefreshSprite();
-				OLED_1in5_Display(ScreenImage_);
+				displayToUpdate_ = true;
+				spriteToUpdate_ = false;
 			}
+
+		}
+		if (displayToUpdate_)
+		{
+			OLED_1in5_Display(ScreenImage_);
+			displayToUpdate_ = false;
 		}
 		
 	}
@@ -540,6 +518,116 @@ void EnterString()
 	*/
 }
 
+void feed(const unsigned char *foodSprite, int foodVal)
+{
+	// TODO: find a cleaner way to do this using the refresh function
+	// problem for now: drawing the food is not handled, only the tama sprite
+	Paint_Clear(BLACK);
+	Paint_DrawImage(tama_.sprite.frames[goingfrontFrame], 45, 39, 38, 49);
+	// Paint_DrawImage(foodSprite, 99, 99, 24, 24);
+	// dessin bouffe
+	OLED_1in5_Display(ScreenImage_);
+	busy_wait_ms(500);
+	Paint_Clear(BLACK);
+	Paint_DrawImage(tama_.sprite.frames[frontmehFrame], 45, 39, 38, 49);
+	// dessin bouffe 2/3
+	OLED_1in5_Display(ScreenImage_);
+	busy_wait_ms(500);
+	Paint_Clear(BLACK);
+	Paint_DrawImage(tama_.sprite.frames[goingfrontFrame], 45, 39, 38, 49);
+	// dessin bouffe 2/3
+	OLED_1in5_Display(ScreenImage_);
+	busy_wait_ms(500);
+	Paint_Clear(BLACK);
+	Paint_DrawImage(tama_.sprite.frames[frontmehFrame], 45, 39, 38, 49);
+	// dessin bouffe 1/3
+	OLED_1in5_Display(ScreenImage_);
+	busy_wait_ms(500);
+	Paint_Clear(BLACK);
+	Paint_DrawImage(tama_.sprite.frames[goingfrontFrame], 45, 39, 38, 49);
+	// dessin bouffe 1/3
+	OLED_1in5_Display(ScreenImage_);
+	busy_wait_ms(500);
+	Paint_Clear(BLACK);
+	Paint_DrawImage(tama_.sprite.frames[frontmehFrame], 45, 39, 38, 49);
+	OLED_1in5_Display(ScreenImage_);
+	busy_wait_ms(500);
+	Paint_Clear(BLACK);
+	if ((tama_.hunger - foodVal) > 0)
+	{
+		Paint_DrawImage(tama_.sprite.frames[frontwavingFrame], 45, 39, 38, 49);
+		OLED_1in5_Display(ScreenImage_);
+		busy_wait_ms(2000);
+		tama_.hunger -= foodVal;
+	}
+	else if ((tama_.hunger - foodVal) > -2)
+	{
+		Paint_DrawImage(tama_.sprite.frames[frontmehFrame], 45, 39, 38, 49);
+		OLED_1in5_Display(ScreenImage_);
+		busy_wait_ms(2000);
+		tama_.hunger = 0;
+	}
+	else
+	{
+		Paint_DrawImage(tama_.sprite.frames[frontawkwardFrame], 45, 39, 38, 49);
+		OLED_1in5_Display(ScreenImage_);
+		busy_wait_ms(2000);
+		tama_.hunger = 0;
+		tama_.sick += 1;
+	}
+	
+}
+
+void idleWalk()
+{
+	if (tama_.sprite.goingRight && tama_.sprite.xOrig <= 74)
+    {
+        walk(15, 0);
+    }
+    else if (tama_.sprite.goingRight && tama_.sprite.xOrig > 74)
+    {
+        walk(-15, 0);
+    }
+    else if (!tama_.sprite.goingRight && tama_.sprite.xOrig >= 15)
+    {
+        walk(-15, 0);
+    }
+    else if (!tama_.sprite.goingRight && tama_.sprite.xOrig < 15)
+    {
+        walk(15, 0);
+    }
+    else // error case: going up
+    {
+        walk(0, 10);
+    }
+}
+
+void walk(int movX, int movY)
+{
+	if (movX < 0)
+	{
+		tama_.sprite.goingRight = false;
+	}
+	else
+	{
+		tama_.sprite.goingRight = true;
+	}
+
+	movement_.prevX = tama_.sprite.xOrig;
+	movement_.prevY = tama_.sprite.yOrig;
+	movement_.targetX = movX;
+	movement_.targetY = movY;
+
+	// TODO: take distance to walk and divide in variable number of frames: 
+	// 1 frame should be like 5 pixels etc
+	// then for loop to add alarms for frames
+
+	add_alarm_in_ms(10, walk_1_callback, NULL, true);
+	add_alarm_in_ms(250, walk_2_callback, NULL, false);
+	add_alarm_in_ms(500, walk_3_callback, NULL, false);
+	add_alarm_in_ms(750, walk_4_callback, NULL, false);
+}
+
 void RefreshIcons()
 {
     // clearing overlay
@@ -581,17 +669,13 @@ void RefreshIcons()
 			Paint_DrawCircle(112, 17, 16, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
 			DrawAllIcons();
 			break;
-
 		}
-
-    iconsToUpdate_ = false;
 }
 
 void RefreshSprite()
 {
     Paint_DrawRectangle(0, 34, 127, 95, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-	Paint_DrawImage(tama_.sprite.frames[fronthappyFrame], tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
-    spriteToUpdate_ = false;
+	Paint_DrawImage(tama_.sprite.currentFrame, tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
 }
 
 void RefreshMenu()
@@ -862,10 +946,22 @@ void menu_logic(uint gpio, uint32_t events)
             switch (game_.foodCursor)
             {
             case junk:
-                // eating mechanic
+				cancel_repeating_timer(&spriteMoveTimer_);
+				// TODO check if this is blocking correctly: no action should be possible while animations
+                feed(chips, 3);
+				game_.currentScreen = mainScreen;
+				game_.foodCursor = 0;
+                menuToUpdate_ = true;
+				add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
                 break;
             case drink:
-
+				cancel_repeating_timer(&spriteMoveTimer_);
+				// TODO add new sprites
+				feed(chips, 1);
+				game_.currentScreen = mainScreen;
+				game_.foodCursor = 0;
+                menuToUpdate_ = true;
+				add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
                 break;
             case foodCancel:
                 game_.currentScreen = mainScreen;
@@ -878,7 +974,9 @@ void menu_logic(uint gpio, uint32_t events)
             switch (game_.playCursor)
             {
             case hop:
-                /* code */
+				cancel_repeating_timer(&spriteMoveTimer_);
+				/* code */
+				add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
                 break;
             case playCancel:
                 game_.currentScreen = mainScreen;
@@ -891,7 +989,9 @@ void menu_logic(uint gpio, uint32_t events)
             switch (game_.washCursor)
             {
             case shower:
-                /* code */
+                cancel_repeating_timer(&spriteMoveTimer_);
+				/* code */
+				add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
                 break;
             case washCancel:
                 game_.currentScreen = mainScreen;
@@ -904,7 +1004,13 @@ void menu_logic(uint gpio, uint32_t events)
             switch (game_.healCursor)
             {
             case pill:
-                /* code */
+                cancel_repeating_timer(&spriteMoveTimer_);
+				feed(med, 0);
+				tama_.sick = 0;
+				game_.currentScreen = mainScreen;
+				game_.healCursor = 0;
+                menuToUpdate_ = true;
+				add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
                 break;
             case healCancel:
                 game_.currentScreen = mainScreen;
@@ -929,7 +1035,10 @@ void menu_logic(uint gpio, uint32_t events)
             switch (game_.bedtimeCursor)
             {
             case light:
-                /* code */
+				cancel_repeating_timer(&spriteMoveTimer_);
+				// also remove irq and add new ones to power up again
+				/* code power off*/
+				add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
                 break;
             case bedtimeCancel:
                 game_.currentScreen = mainScreen;
