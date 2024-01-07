@@ -628,6 +628,35 @@ void walk(int movX, int movY)
 	add_alarm_in_ms(750, walk_4_callback, NULL, false);
 }
 
+void prePowerDown()
+{
+	// cancelling all timers and callbacks
+	cancel_repeating_timer(&spriteMoveTimer_);
+	// remove menu callback from buttons ? 
+	// gpio_set_irq_callback(NULL);
+	gpio_set_irq_enabled(LBUTT, GPIO_IRQ_EDGE_RISE , false);
+	gpio_set_irq_enabled(MBUTT, GPIO_IRQ_EDGE_RISE , false);
+	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , false);
+
+	// screen off
+	OLED_1in5_Clear();
+
+}
+
+void postPowerUp()
+{
+	add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
+	// TODO: hunger callback, happiness etc...
+
+	// this sets the gpio irq callback, will be the same for the 3 buttons
+	gpio_set_irq_enabled_with_callback(LBUTT, GPIO_IRQ_EDGE_RISE , true, &menu_logic);
+	gpio_set_irq_enabled(MBUTT, GPIO_IRQ_EDGE_RISE , true);
+	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
+
+	busy_wait_ms(200);
+
+}
+
 void RefreshIcons()
 {
     // clearing overlay
@@ -917,35 +946,35 @@ void menu_logic(uint gpio, uint32_t events)
                 break;
             case food:
                 game_.currentScreen = foodScreen;
-                menuToUpdate_ = true; // do this ourselves instead of flagging!
+                menuToUpdate_ = true;
                 break;
             case play:
                 game_.currentScreen = playScreen;
-                menuToUpdate_ = true; // do this ourselves instead of flagging!
+                menuToUpdate_ = true;
                 break;
             case wash:
                 game_.currentScreen = washScreen;
-                menuToUpdate_ = true; // do this ourselves instead of flagging!
+                menuToUpdate_ = true;
                 break;
             case heal:
                 game_.currentScreen = healScreen;
-                menuToUpdate_ = true; // do this ourselves instead of flagging!
+                menuToUpdate_ = true;
                 break;
             case comm:
                 game_.currentScreen = commScreen;
-                menuToUpdate_ = true; // do this ourselves instead of flagging!
+                menuToUpdate_ = true;
                 break;
             case bedtime:
                 game_.currentScreen = bedtimeScreen;
-                menuToUpdate_ = true; // do this ourselves instead of flagging!
+                menuToUpdate_ = true;
                 break;
             case infos:
                 game_.currentScreen = infosScreen;
-                menuToUpdate_ = true; // do this ourselves instead of flagging!
+                menuToUpdate_ = true;
                 break;
             case settings:
                 game_.currentScreen = settingsScreen;
-                menuToUpdate_ = true; // do this ourselves instead of flagging!
+                menuToUpdate_ = true;
                 break;
             }
             break;
@@ -1042,10 +1071,21 @@ void menu_logic(uint gpio, uint32_t events)
             switch (game_.bedtimeCursor)
             {
             case light:
-				cancel_repeating_timer(&spriteMoveTimer_);
-				// also remove irq and add new ones to power up again
-				/* code power off*/
-				add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
+				// maybe visual indication of sleeping? then timers and power down
+				tamaSleep();
+				prePowerDown();
+				spi_deinit(spi0);
+				// blocking dormant mode: waits for middle button press to power back up
+				dormantMode();
+				// busy_wait_ms(2000);
+				// reinit everything after dormant mode
+				spi_init(spi0, 10000*1000); // baudrate set to 48kHz
+				postPowerUp();
+				tamaWake();
+
+				game_.currentScreen = mainScreen;
+				game_.bedtimeCursor = 0;
+                menuToUpdate_ = true;				
                 break;
             case bedtimeCancel:
                 game_.currentScreen = mainScreen;

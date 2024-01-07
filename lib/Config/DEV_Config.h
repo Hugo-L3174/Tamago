@@ -80,7 +80,7 @@
 UBYTE DEV_ModuleInit(void);
 void  DEV_ModuleExit(void);
 
-// Initialize OLED pins
+// Initialize OLED pins and spi communication
 UBYTE Init_OLED(void);
 
 // Initialize buttons pins

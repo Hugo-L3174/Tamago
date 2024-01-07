@@ -1,3 +1,7 @@
+/* The power source and voltage functions come from the pico-examples repo
+The other functions were added after
+*/
+
 /**
  * Copyright (c) 2023 Raspberry Pi (Trading) Ltd.
  *
@@ -7,6 +11,13 @@
 #include "stdbool.h"
 #include "hardware/adc.h"
 #include "power_status.h"
+#include "pico/sleep.h"
+#include "hardware/clocks.h"
+#include "hardware/rosc.h"
+#include "hardware/structs/scb.h"
+
+#include "../Config/DEV_Config.h"
+#include "../OLED/OLED_1in5.h"
 
 #if CYW43_USES_VSYS_PIN
 #include "pico/cyw43_arch.h"
@@ -74,4 +85,27 @@ int power_voltage(float *voltage_result) {
     *voltage_result = vsys * 3 * conversion_factor;
     return PICO_OK;
 #endif
+}
+
+void dormantMode()
+{	
+	// TODO on future versions of the board: add a mosfet to switch off screen and ssd1327 power supply
+    
+    // save current frequency values for later
+    uint scb_orig = scb_hw->scr;
+    uint clock0_orig = clocks_hw->sleep_en0;
+    uint clock1_orig = clocks_hw->sleep_en1;
+
+	// powering down until middle button is pressed
+    sleep_run_from_xosc(); // choosing to run from crystal (alternative is rosc: ring oscillator) 
+    sleep_goto_dormant_until_pin(MBUTT, 0, 0);
+
+    // back from dormant state
+    // Re-enable ring Oscillator control
+    rosc_write(&rosc_hw->ctrl, ROSC_CTRL_ENABLE_BITS);
+    // reset processors back to default
+    scb_hw->scr = scb_orig;
+    clocks_hw->sleep_en0 = clock0_orig;
+    clocks_hw->sleep_en1 = clock1_orig;
+    clocks_init();
 }

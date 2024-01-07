@@ -5,7 +5,7 @@
 #include "pico/binary_info.h"
 #include "hardware/spi.h"
 #include "pico/time.h"
-#include "pico/multicore.h"
+// #include "pico/multicore.h"
 #include "hardware/adc.h"
 #include "pico/cyw43_arch.h"
 //#include "hardware/rtc.h"
@@ -16,7 +16,7 @@
 #include "lib/Fonts/fonts.h"
 #include "lib/Buzzer/Buzz.h"
 #include "lib/UPS/Pico_UPS.h"
-#include "lib/Battery/power_status.h"
+#include "lib/UPS/power_status.h"
 
 #include "pic/sprites.h"
 
@@ -112,6 +112,7 @@ int OLED_1in5_test(void);
 
 int buzzTest(void);
 
+// init all peripherals (pins, functions, spi communication)
 int hardware_setup(void); 
 
 // Initialize pet variables
@@ -150,6 +151,12 @@ void RefreshMenu(void);
 void feed(const unsigned char *foodSprite, int foodVal);
 void walk(int movX, int movY);
 void idleWalk();
+
+// stops alarms and irqs before powering down
+void prePowerDown();
+
+// reinitializes alarms etc to get game running again after powering back up
+void postPowerUp();
 
 // GUI utils
 void DrawAllIcons(void);

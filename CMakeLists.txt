@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.13)
 # initialize pico-sdk from submodule
 include(pico-sdk/pico_sdk_init.cmake)
 
+# pico extras should be added for the deep sleep functions
+include(pico-extras/external/pico_extras_import.cmake)
+
 project(tamago)
 
 # initialize the Raspberry Pi Pico SDK
@@ -26,7 +29,7 @@ add_library(TamaBoard STATIC
     ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/GUI_Paint.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Buzzer/Buzz.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/UPS/Pico_UPS.c
-    ${CMAKE_CURRENT_LIST_DIR}/lib/Battery/power_status.c
+    ${CMAKE_CURRENT_LIST_DIR}/lib/UPS/power_status.c
 )
 
 target_include_directories(TamaBoard PUBLIC
@@ -35,10 +38,9 @@ target_include_directories(TamaBoard PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/
     ${CMAKE_CURRENT_LIST_DIR}/lib/Buzzer/
     ${CMAKE_CURRENT_LIST_DIR}/lib/UPS/
-    ${CMAKE_CURRENT_LIST_DIR}/lib/Battery/
 )
-
-target_link_libraries(TamaBoard Fonts pico_stdlib hardware_spi hardware_pwm hardware_i2c hardware_adc pico_cyw43_arch_none pico_multicore)
+                                                                        #i2c optional: was for UPS
+target_link_libraries(TamaBoard Fonts pico_stdlib hardware_spi hardware_pwm hardware_i2c hardware_adc pico_cyw43_arch_none hardware_sleep)
 
 
 add_executable(tamago

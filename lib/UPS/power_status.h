@@ -1,3 +1,7 @@
+/* The power source and voltage functions come from the pico-examples repo
+The other functions were added after
+*/
+
 /**
  * Copyright (c) 2023 Raspberry Pi (Trading) Ltd.
  *
@@ -29,5 +33,10 @@ int power_source(bool *battery_powered);
  * \return Zero if the voltage can be determined, an error code otherwise \see pico_error_codes
  */
 int power_voltage(float *voltage);
+
+// function to power down the hardware and go to dormant mode, then wake up safely
+// see https://ghubcoder.github.io/posts/awaking-the-pico/ which was very useful
+void dormantMode();
+
 
 #endif
