@@ -73,6 +73,7 @@ int main() {
 	}
 	image_init();
 	tama_init();
+	// cyw43_arch_deinit();
 
 /* TODO MULTICORE
 on lance le core1 en mode attente de fonctions et on fait se passer aux cores la config interne du tama: comme ça on compute en thread la config, on la passe
@@ -89,7 +90,8 @@ au lieu d'une seule screen image, faire 3 images: une pour le sprite et deux pou
 	
 	// debug_battery();
 	// debug_images();
-	debug_overlay();
+	debug_bt();
+	// debug_overlay();
 	// debug_bt();
 
 }
@@ -220,6 +222,65 @@ int debug_UPS(void)
 	}
 }
 
+int debug_bt(void)
+{
+	cyw43_arch_init();
+	Paint_SelectImage(ScreenImage_);
+
+	l2cap_init();
+    sm_init();
+    sm_set_io_capabilities(IO_CAPABILITY_NO_INPUT_NO_OUTPUT);
+
+    // setup empty ATT server - only needed if LE Peripheral does ATT queries on its own, e.g. Android and iOS
+    att_server_init(NULL, NULL, NULL);
+
+    gatt_client_init();
+
+    hci_event_callback_registration.callback = &hci_event_handler;
+    hci_add_event_handler(&hci_event_callback_registration);
+
+    // set one-shot btstack timer
+    heartbeat.process = &heartbeat_handler;
+    btstack_run_loop_set_timer(&heartbeat, LED_SLOW_FLASH_DELAY_MS);
+    btstack_run_loop_add_timer(&heartbeat);
+
+    // turn on!
+    hci_power_control(HCI_POWER_ON);
+
+    // btstack_run_loop_execute is only required when using the 'polling' method (e.g. using pico_cyw43_arch_poll library).
+    // This example uses the 'threadsafe background` method, where BT work is handled in a low priority IRQ, so it
+    // is fine to call bt_stack_run_loop_execute() but equally you can continue executing user code.
+
+	// this is only necessary when using polling (which we aren't, but we're showing it is still safe to call in this case)
+    // btstack_run_loop_execute();
+	while(true) {      
+        sleep_ms(1000);
+		OLED_1in5_Display(ScreenImage_);
+    }
+
+	// This example should also work if I set the correct LE flags in cmake
+	// gap_set_scan_params(0,4800,48,0); // scan type: 0: passive, 1:active
+    //                                     //scan interval 0.625*n, 
+    // gap_start_scan(); 
+
+    // hci_event_callback_registration.callback = &packet_handler;
+    // hci_add_event_handler(&hci_event_callback_registration);
+
+    // hci_power_control(HCI_POWER_ON);
+
+    // while (1) {
+    //     if (bNewAdvData) {
+    //         bNewAdvData=false;
+	// 		Paint_Clear(BLACK);
+	// 		Paint_DrawString_EN(10, 10, broadcast_device_name, &Font16, 0x1, 0xb);
+	// 		Paint_DrawNum(10, 30, temp, &Font16, 3, 0x1, 0xb);
+	// 		Paint_DrawNum(10, 50, humi, &Font16, 3, 0x1, 0xb);
+
+    //         OLED_1in5_Display(ScreenImage_);
+    //     }
+    // }
+
+}
 
 int debug_overlay(void)
 {
@@ -236,6 +297,17 @@ int debug_overlay(void)
 
 	while (true)
 	{
+		if (bluetoothMode_ == 1 || bluetoothMode_ == 2)
+		{
+			// should this be in game menu callback? dirty to execute in callback, probably better in main loop here
+			cancel_repeating_timer(&spriteMoveTimer_);
+			BluetoothComm(bluetoothMode_);
+			add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
+			game_.currentScreen = mainScreen;
+			game_.commCursor = 0;
+            menuToUpdate_ = true;
+		}
+		
 		if (menuToUpdate_ || cursorToUpdate_)
 		{
 			RefreshMenu();
@@ -490,6 +562,12 @@ int OLED_1in5_test(void)
 
 		OLED_1in5_Clear();
 	}
+}
+
+void BluetoothComm(int mode)
+{
+	
+
 }
 
 void ClearIconsArea(UWORD Color)
@@ -1058,7 +1136,11 @@ void menu_logic(uint gpio, uint32_t events)
         case commScreen:
             switch (game_.commCursor)
             {
+			case broadcast:
+				bluetoothMode_ = 1;
+				break;
             case search:
+				bluetoothMode_ = 2;
                 break;
             case commCancel:
                 game_.currentScreen = mainScreen;

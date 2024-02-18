@@ -18,6 +18,8 @@
 #include "lib/UPS/Pico_UPS.h"
 #include "lib/UPS/power_status.h"
 
+#include "lib/Bluetooth/client.h"
+
 #include "pic/sprites.h"
 
 
@@ -36,7 +38,7 @@ enum foodMenu {junk, drink, foodCancel};
 enum playMenu {hop, playCancel};
 enum washMenu {shower, washCancel};
 enum healMenu {pill, healCancel};
-enum commMenu {search, commCancel};
+enum commMenu {broadcast, search, commCancel};
 enum bedtimeMenu {light, bedtimeCancel};
 enum infosMenu {name, age, hunger, happiness, species, infosCancel};
 enum settingsMenu {brightness, settingsCancel};
@@ -46,7 +48,7 @@ const char *foodOptions[3] = {"Junk food", "Boire", "Retour"};
 const char *playOptions[2] = {"Sauter", "Retour"};
 const char *washOptions[2] = {"Douche", "Retour"};
 const char *healOptions[2] = {"Pilule", "Retour"};
-const char *commOptions[2] = {"Recherche", "Retour"};
+const char *commOptions[3] = {"Emettre", "Recherche", "Retour"};
 const char *bedtimeOptions[2] = {"Eteindre", "Retour"};
 const char *infoOptions[6] = {"Nom:", "Age:", "Faim:", "Bonheur:", "Espece:", "Retour"};
 const char *settingsOptions[2] = {"Luminosite", "Retour"};
@@ -128,6 +130,8 @@ int debug_images(void);
 
 int debug_overlay(void);
 
+int debug_bt(void);
+
 // Initialize mem allocation for image buffer and reset it to black
 int image_init(void);
 
@@ -158,6 +162,8 @@ void prePowerDown();
 // reinitializes alarms etc to get game running again after powering back up
 void postPowerUp();
 
+void BluetoothComm(int mode);
+
 // GUI utils
 void DrawAllIcons(void);
 void ClearIconsArea(UWORD Color);
@@ -183,6 +189,7 @@ volatile bool spriteToUpdate_ = false;
 volatile bool iconsToUpdate_ = false;
 volatile bool menuToUpdate_ = false;
 volatile bool cursorToUpdate_ = false;
+volatile int bluetoothMode_ = 0; 
 bool displayToUpdate_ = false;
 
 // Timers for timed callbacks
