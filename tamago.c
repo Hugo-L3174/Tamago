@@ -88,9 +88,9 @@ au lieu d'une seule screen image, faire 3 images: une pour le sprite et deux pou
 	// Main loop
 	// buzzTest();
 	
-	// debug_battery();
+	debug_battery();
 	// debug_images();
-	debug_bt();
+	// debug_bt();
 	// debug_overlay();
 	// debug_bt();
 
@@ -137,42 +137,48 @@ int buzzTest(void)
 
 int debug_battery(void)
 {
+	// necessary to read digital pin
+	adc_init();
+	cyw43_arch_init();
 	Paint_SelectImage(ScreenImage_);
+	Paint_DrawString_EN(0, 0, "Power:", &Font12, 0x8, 0x1);
+	OLED_1in5_Display(ScreenImage_);
+	float voltage;
+	int percent_val;
+	
 	while (1)
 	{
-		// pass this in a separate file in order to have only tamago specific things here
+		// Get battery status
+		if (power_source(&battery_status) == PICO_OK) {
+			power_src = battery_status ? "BATTERY" : "PLUGGED";
+		}
 
-	// Get battery status
-	if (power_source(&battery_status) == PICO_OK) {
-		power_str = battery_status ? "BATTERY" : "PLUGGED";
-	}
+		// Get voltage
+		int voltage_return = power_voltage(&voltage);
+		voltage = floorf(voltage * 100) / 100;
 
-	// Get voltage
-	float voltage = 0;
-	int voltage_return = power_voltage(&voltage);
-	voltage = floorf(voltage * 100) / 100;
-	int percent_val = 0;
-
-	// Display power if it's changed
-	if (old_battery_status != battery_status || old_voltage != voltage) {
-		// will not execute if on battery: find an intelligent way to check battery volatge while plugged
-		// if (battery_status && voltage_return == PICO_OK) {
-			const float min_battery_volts = 3.0f;
-			const float max_battery_volts = 4.2f;
-			percent_val = ((voltage - min_battery_volts) / (max_battery_volts - min_battery_volts)) * 100;
-		// }
-
-		// Display power and remember old values
-		// printf("Power %s, %.2fV%s\n", power_str, voltage, percent_buf);
 		Paint_DrawString_EN(0, 0, "Power:", &Font12, 0x8, 0x1);
-		Paint_DrawString_EN(44, 0, power_str, &Font12, 0x8, 0x1);
-		Paint_DrawNum(0, 13, voltage, &Font12, 2, 0x8, 0x1);
-		Paint_DrawNum(0, 26, percent_val, &Font12, 0, 0x8, 0x1);
-		old_battery_status = battery_status;
-		old_voltage = voltage;
-	}
-	OLED_1in5_Display(ScreenImage_);
-	sleep_ms(1000);
+		// Display power if it's changed
+		if (old_battery_status != battery_status || old_voltage != voltage) {
+			// will not execute if on battery: find an intelligent way to check battery volatge while plugged
+			// if (battery_status && voltage_return == PICO_OK) {
+				const float min_battery_volts = 3.0f;
+				const float max_battery_volts = 4.2f;
+				percent_val = ((voltage - min_battery_volts) / (max_battery_volts - min_battery_volts)) * 100;
+			// }
+
+			// Display power and remember old values
+			// printf("Power %s, %.2fV%s\n", power_str, voltage, percent_buf);
+			Paint_DrawString_EN(44, 0, power_src, &Font12, 0x8, 0x1);
+			Paint_DrawString_EN(0, 13, "Voltage:", &Font12, 0x8, 0x1);
+			Paint_DrawNum(58, 13, voltage, &Font12, 2, 0x8, 0x1);
+			Paint_DrawString_EN(0, 26, "Bat %:", &Font12, 0x8, 0x1);
+			Paint_DrawNum(44, 26, percent_val, &Font12, 0, 0x8, 0x1);
+			old_battery_status = battery_status;
+			old_voltage = voltage;
+		}
+		OLED_1in5_Display(ScreenImage_);
+		sleep_ms(1000);
 	}
 }
 

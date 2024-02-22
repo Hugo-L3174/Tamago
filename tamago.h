@@ -206,7 +206,7 @@ move movement_;
 bool old_battery_status;
 float old_voltage;
 bool battery_status = true;
-char *power_str = "UNKNOWN";
+char *power_src = "UNKNOWN";
 
 
 /****************************************************************
