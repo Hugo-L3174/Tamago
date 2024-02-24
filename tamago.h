@@ -164,6 +164,9 @@ void postPowerUp();
 
 void BluetoothComm(int mode);
 
+// polling of battery level
+void batteryPoll();
+
 // GUI utils
 void DrawAllIcons(void);
 void ClearIconsArea(UWORD Color);
@@ -190,10 +193,11 @@ volatile bool iconsToUpdate_ = false;
 volatile bool menuToUpdate_ = false;
 volatile bool cursorToUpdate_ = false;
 volatile int bluetoothMode_ = 0; 
+volatile bool batteryToUpdate_ = true;
 bool displayToUpdate_ = false;
 
 // Timers for timed callbacks
-struct repeating_timer hungerTimer_, spriteMoveTimer_;
+struct repeating_timer hungerTimer_, spriteMoveTimer_, batteryPollTimer_;
 
 // timer for debounce control
 unsigned long time;
@@ -206,8 +210,9 @@ move movement_;
 bool old_battery_status;
 float old_voltage;
 bool battery_status = true;
-char *power_src = "UNKNOWN";
-
+char power_src[] = "BatInconnue";
+uint8_t batteryVal;
+bool lowBattery = false;
 
 /****************************************************************
 *                   Callback functions
@@ -222,6 +227,11 @@ bool hunger_callback(struct repeating_timer *t) {
 // to be called regularly to make the idle sprite animation
 bool spriteMove_callback(struct repeating_timer *t) {
     idleWalk();
+    return true;
+}
+
+bool pollBatt_callback(struct repeating_timer *t) {
+    batteryToUpdate_ = true;
     return true;
 }
 

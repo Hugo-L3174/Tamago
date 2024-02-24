@@ -88,10 +88,10 @@ au lieu d'une seule screen image, faire 3 images: une pour le sprite et deux pou
 	// Main loop
 	// buzzTest();
 	
-	debug_battery();
+	// debug_battery();
 	// debug_images();
 	// debug_bt();
-	// debug_overlay();
+	debug_overlay();
 	// debug_bt();
 
 }
@@ -150,7 +150,7 @@ int debug_battery(void)
 	{
 		// Get battery status
 		if (power_source(&battery_status) == PICO_OK) {
-			power_src = battery_status ? "BATTERY" : "PLUGGED";
+			battery_status ? sprintf(power_src,"BATTERY") : sprintf(power_src,"PLUGGED");
 		}
 
 		// Get voltage
@@ -172,7 +172,7 @@ int debug_battery(void)
 			Paint_DrawString_EN(44, 0, power_src, &Font12, 0x8, 0x1);
 			Paint_DrawString_EN(0, 13, "Voltage:", &Font12, 0x8, 0x1);
 			Paint_DrawNum(58, 13, voltage, &Font12, 2, 0x8, 0x1);
-			Paint_DrawString_EN(0, 26, "Bat %:", &Font12, 0x8, 0x1);
+			Paint_DrawString_EN(0, 26, "Bat %%:", &Font12, 0x8, 0x1);
 			Paint_DrawNum(44, 26, percent_val, &Font12, 0, 0x8, 0x1);
 			old_battery_status = battery_status;
 			old_voltage = voltage;
@@ -298,6 +298,9 @@ int debug_overlay(void)
 	gpio_set_irq_enabled(MBUTT, GPIO_IRQ_EDGE_RISE , true);
 	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
 
+	// poll battery every minute
+	add_repeating_timer_ms(60000, pollBatt_callback, NULL, &batteryPollTimer_);
+
 	Paint_DrawImage(tama_.sprite.currentFrame, tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
 	OLED_1in5_Display(ScreenImage_);
 
@@ -312,6 +315,13 @@ int debug_overlay(void)
 			game_.currentScreen = mainScreen;
 			game_.commCursor = 0;
             menuToUpdate_ = true;
+		}
+
+		if (batteryToUpdate_)
+		{
+			batteryPoll();
+			menuToUpdate_ = true;
+			batteryToUpdate_ = false;
 		}
 		
 		if (menuToUpdate_ || cursorToUpdate_)
@@ -574,6 +584,34 @@ void BluetoothComm(int mode)
 {
 	
 
+}
+
+void batteryPoll()
+{
+    // Get battery status
+    power_source(&battery_status);
+    if (battery_status)
+    {
+        float voltage = 0;
+        const float min_battery_volts = 3.0f;
+		const float max_battery_volts = 4.2f;
+        for (int i = 0; i < 10; i++)
+        {
+            // Get voltage
+            int voltage_return = power_voltage(&voltage);
+            voltage += floorf(voltage * 100) / 100;
+        }
+        // update value for logic and string for display
+        batteryVal = (voltage - min_battery_volts) / (max_battery_volts - min_battery_volts) * 10;
+		// power_src = batteryVal + '%%';
+        sprintf(power_src, "%d%%", batteryVal);
+        // strcat(power_src, "%");
+    }else
+    {	
+		sprintf(power_src, "en charge");
+        // power_src =  "en charge";
+		// strcat(power_src, '%');
+    }
 }
 
 void ClearIconsArea(UWORD Color)
@@ -880,21 +918,24 @@ void RefreshMenu()
 		}
 		break;
 	case infosScreen: // todo: find better way to display dynamically tama attributes
-		// x position: char width in font12 x char nb in option displayed + fixed 2
-		Paint_DrawString_EN(30, 0, tama_.name, &Font12, 0x8, 0x1);
-		Paint_DrawNum(30, 13, tama_.age, &Font12, 0, 0x8, 0x1);
-		Paint_DrawNum(37, 26, tama_.hunger, &Font12, 0, 0x8, 0x1);
-		Paint_DrawNum(58, 39, tama_.happiness, &Font12, 0, 0x8, 0x1);
-		Paint_DrawString_EN(51, 52, tama_.species, &Font12, 0x8, 0x1);
+		// x position: char width in font12 (7px) * char nb in option displayed + fixed 2
+		Paint_DrawString_EN(0, 0, "Batt:", &Font12, 0x8, 0x1);
+		Paint_DrawString_EN(37, 0, power_src, &Font12, 0x8, 0x1);
+		Paint_DrawString_EN(30, 13, tama_.name, &Font12, 0x8, 0x1);
+		Paint_DrawNum(30, 26, tama_.age, &Font12, 0, 0x8, 0x1);
+		Paint_DrawNum(37, 39, tama_.hunger, &Font12, 0, 0x8, 0x1);
+		Paint_DrawNum(58, 52, tama_.happiness, &Font12, 0, 0x8, 0x1);
+		Paint_DrawString_EN(51, 65, tama_.species, &Font12, 0x8, 0x1);
 
+		// draw info category strings from enum
 		for (UBYTE i = 0; i < infosCancel+1; i++)
 		{	
 			if (game_.infoCursor == i)
 			{
-				Paint_DrawString_EN(0, 13*i, infoOptions[i], &Font12, 0x3, 0xe);
+				Paint_DrawString_EN(0, 13*(i+1), infoOptions[i], &Font12, 0x3, 0xe);
 			}else
 			{
-				Paint_DrawString_EN(0, 13*i, infoOptions[i], &Font12, 0x8, 0x1);
+				Paint_DrawString_EN(0, 13*(i+1), infoOptions[i], &Font12, 0x8, 0x1);
 			}	
 		}
 		break;
@@ -1160,7 +1201,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
             case light:
 				// maybe visual indication of sleeping? then timers and power down
-				tamaSleep();
+				// tamaSleep();
 				prePowerDown();
 				spi_deinit(spi0);
 				// blocking dormant mode: waits for middle button press to power back up
@@ -1169,7 +1210,7 @@ void menu_logic(uint gpio, uint32_t events)
 				// reinit everything after dormant mode
 				spi_init(spi0, 10000*1000); // baudrate set to 48kHz
 				postPowerUp();
-				tamaWake();
+				// tamaWake();
 
 				game_.currentScreen = mainScreen;
 				game_.bedtimeCursor = 0;

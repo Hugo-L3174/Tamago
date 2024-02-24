@@ -31,7 +31,7 @@
 #define SCREEN          1
 #define UPS             0
 #define BUTTONS         1
-#define BATTERY_MONITOR 0
+#define BATTERY_MONITOR 1
 #define BUZZER          1
 #define BLUETOOTH       0
 
