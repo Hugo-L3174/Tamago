@@ -298,8 +298,8 @@ int debug_overlay(void)
 	gpio_set_irq_enabled(MBUTT, GPIO_IRQ_EDGE_RISE , true);
 	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
 
-	// poll battery every minute
-	add_repeating_timer_ms(60000, pollBatt_callback, NULL, &batteryPollTimer_);
+	// poll battery every 2 minutes
+	add_repeating_timer_ms(120000, pollBatt_callback, NULL, &batteryPollTimer_);
 
 	Paint_DrawImage(tama_.sprite.currentFrame, tama_.sprite.xOrig, tama_.sprite.yOrig, 38, 49);
 	OLED_1in5_Display(ScreenImage_);
@@ -1040,14 +1040,7 @@ void menu_logic(uint gpio, uint32_t events)
 			cursorToUpdate_ = true;
             break;
         case infosScreen:
-            if (game_.infoCursor > 0)
-            {
-                game_.infoCursor--;
-            }else
-            {
-                game_.infoCursor = infosCancel;
-            }
-			cursorToUpdate_ = true; 
+			// only access cancel value
             break;
         case settingsScreen:
             if (game_.settingsCursor > 0)
@@ -1095,6 +1088,11 @@ void menu_logic(uint gpio, uint32_t events)
                 break;
             case infos:
                 game_.currentScreen = infosScreen;
+				// select only cancel button (read only infos)
+				game_.infoCursor = infosCancel;
+				// set the polling to every 10s
+				cancel_repeating_timer(&batteryPollTimer_);
+				add_repeating_timer_ms(10000, pollBatt_callback, NULL, &batteryPollTimer_);
                 menuToUpdate_ = true;
                 break;
             case settings:
@@ -1238,6 +1236,9 @@ void menu_logic(uint gpio, uint32_t events)
             case happiness:
                 break;
             case infosCancel:
+				// set the polling at 2 mins again
+				cancel_repeating_timer(&batteryPollTimer_);
+				add_repeating_timer_ms(120000, pollBatt_callback, NULL, &batteryPollTimer_);
                 game_.currentScreen = mainScreen;
 				game_.infoCursor = 0;
                 menuToUpdate_ = true;
@@ -1333,14 +1334,7 @@ void menu_logic(uint gpio, uint32_t events)
 			cursorToUpdate_ = true;
             break;
         case infosScreen:
-            if (game_.infoCursor < infosCancel)
-            {
-                game_.infoCursor++;
-            }else
-            {
-                game_.infoCursor = 0;
-            }
-			cursorToUpdate_ = true;
+            // only access cancel value
             break;
         case settingsScreen:
             if (game_.settingsCursor < settingsCancel)
