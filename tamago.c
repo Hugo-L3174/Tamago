@@ -89,7 +89,8 @@ au lieu d'une seule screen image, faire 3 images: une pour le sprite et deux pou
 	// buzzTest();
 	
 	// debug_battery();
-	// debug_images();
+	// debug_images(); 
+	// debug_dino();
 	// debug_bt();
 	debug_overlay();
 	// debug_bt();
@@ -133,6 +134,11 @@ int buzzTest(void)
 	// play_melody(&noteTimer, HarryPotter,144);
     // wait until is done
     // while(!noteTimer.Done);
+}
+
+int debug_dino(void)
+{
+	
 }
 
 int debug_battery(void)
@@ -400,6 +406,12 @@ int debug_images(void)
 	// {
 	// 	Paint_DrawImage(Mametchi[i], (i-5)*39, 50, 38, 49);
 	// }
+	Paint_DrawImage(Mametchi[0], 0, 0, 38, 49);
+	Paint_DrawImage(chips, 6, 30, 24, 24);
+	Paint_DrawImage(Mametchi[0], 40, 0, 38, 49);
+	Paint_DrawImage(chips, 46, 30, 24, 24);
+	Paint_DrawImage(Mametchi[0], 80, 0, 38, 49);
+	Paint_DrawImage(chips, 86, 30, 24, 24);
 	
 	// Paint_ClearWindows(64, 0, 127, 24, WHITE);
 	// Paint_SetRotate(ROTATE_90);
@@ -416,8 +428,8 @@ int debug_images(void)
 	// Paint_DrawNum( 60, 0, -4.3, &Font8, 1, 0xb, 0x2);
 	// Paint_DrawNum( 60, 10, 4.3, &Font8, 1, 0xb, 0x2);
 
-	Paint_DrawImage(Mametchi[0], 0, 0, 38, 49);
-	Paint_DrawImage_Flipped(Mametchi[0], 0, 49, 38, 49);
+	// Paint_DrawImage(Mametchi[0], 0, 0, 38, 49);
+	// Paint_DrawImage_Flipped(Mametchi[0], 0, 49, 38, 49);
 	// Paint_DrawImage_Flipped(Mametchi[0], 55, 49, 38, 49);
 	
 	// Paint_DrawImage(farfetchd_gen3, 64, 64, 64, 64);
@@ -460,8 +472,8 @@ int debug_images(void)
 	0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,
 	0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0,0x12,0x34,0x56,0x78,0x9a,0xbc,0xde,0xf0
 	};
-	Paint_DrawImage_Flipped(test17x16, 64, 50, 17, 16);
-	Paint_DrawImage(test17x16, 64, 30, 17, 16);
+	// Paint_DrawImage_Flipped(test17x16, 64, 50, 17, 16);
+	// Paint_DrawImage(test17x16, 64, 30, 17, 16);
 
 	// Display memory value associated with color in draw image function:
 	const unsigned char *image_buffer = test17x16;
@@ -640,34 +652,36 @@ void EnterString()
 	*/
 }
 
-void feed(const unsigned char *foodSprite, int foodVal)
+void feed(spriteFramePtr *foodSprite, int foodVal)
 {
-	// TODO: find a cleaner way to do this using the refresh function
-	// problem for now: drawing the food is not handled, only the tama sprite
 	Paint_Clear(BLACK);
 	Paint_DrawImage(tama_.sprite.frames[goingfrontFrame], 45, 39, 38, 49);
-	// Paint_DrawImage(foodSprite, 99, 99, 24, 24);
 	// dessin bouffe
+	Paint_DrawImage(foodSprite[0], 51, 69, 24, 24);
 	OLED_1in5_Display(ScreenImage_);
 	busy_wait_ms(500);
 	Paint_Clear(BLACK);
 	Paint_DrawImage(tama_.sprite.frames[frontmehFrame], 45, 39, 38, 49);
 	// dessin bouffe 2/3
+	Paint_DrawImage(foodSprite[1], 51, 69, 24, 24);
 	OLED_1in5_Display(ScreenImage_);
 	busy_wait_ms(500);
 	Paint_Clear(BLACK);
 	Paint_DrawImage(tama_.sprite.frames[goingfrontFrame], 45, 39, 38, 49);
 	// dessin bouffe 2/3
+	Paint_DrawImage(foodSprite[1], 51, 69, 24, 24);
 	OLED_1in5_Display(ScreenImage_);
 	busy_wait_ms(500);
 	Paint_Clear(BLACK);
 	Paint_DrawImage(tama_.sprite.frames[frontmehFrame], 45, 39, 38, 49);
 	// dessin bouffe 1/3
+	Paint_DrawImage(foodSprite[2], 51, 69, 24, 24);
 	OLED_1in5_Display(ScreenImage_);
 	busy_wait_ms(500);
 	Paint_Clear(BLACK);
 	Paint_DrawImage(tama_.sprite.frames[goingfrontFrame], 45, 39, 38, 49);
 	// dessin bouffe 1/3
+	Paint_DrawImage(foodSprite[2], 51, 69, 24, 24);
 	OLED_1in5_Display(ScreenImage_);
 	busy_wait_ms(500);
 	Paint_Clear(BLACK);
@@ -1107,7 +1121,7 @@ void menu_logic(uint gpio, uint32_t events)
             case junk:
 				cancel_repeating_timer(&spriteMoveTimer_);
 				// TODO check if this is blocking correctly: no action should be possible while animations
-                feed(chips, 3);
+                feed(chipsFood, 3);
 				game_.currentScreen = mainScreen;
 				game_.foodCursor = 0;
                 menuToUpdate_ = true;
@@ -1116,7 +1130,7 @@ void menu_logic(uint gpio, uint32_t events)
             case drink:
 				cancel_repeating_timer(&spriteMoveTimer_);
 				// TODO add new sprites
-				feed(chips, 1);
+				feed(chipsFood, 1);
 				game_.currentScreen = mainScreen;
 				game_.foodCursor = 0;
                 menuToUpdate_ = true;
@@ -1164,7 +1178,7 @@ void menu_logic(uint gpio, uint32_t events)
             {
             case pill:
                 cancel_repeating_timer(&spriteMoveTimer_);
-				feed(med, 0);
+				feed(medFood, 0);
 				tama_.sick = 0;
 				game_.currentScreen = mainScreen;
 				game_.healCursor = 0;

@@ -128,6 +128,8 @@ int debug_battery(void);
 
 int debug_images(void);
 
+int debug_dino(void);
+
 int debug_overlay(void);
 
 int debug_bt(void);
@@ -151,8 +153,9 @@ void RefreshMenu(void);
 
 // game mechanics
 
+// Passes array of sprite frames for the food
 // should be blocking function
-void feed(const unsigned char *foodSprite, int foodVal);
+void feed(spriteFramePtr *foodSprite, int foodVal);
 void walk(int movX, int movY);
 void idleWalk();
 

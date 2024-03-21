@@ -61,7 +61,7 @@ target_link_libraries(Bluetooth
     pico_stdlib
     pico_btstack_ble # for bluetooth
     pico_btstack_cyw43 # for bluetooth
-    pico_cyw43_arch_none # for battery reading (this gpio is controlled by cyw43) and bluetooth
+    pico_cyw43_arch_none # for battery reading (VSYS gpio is controlled by cyw43 on pico_w) and bluetooth
     TamaBoard 
 )
 

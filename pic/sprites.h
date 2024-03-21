@@ -36,6 +36,10 @@ spriteFramePtr Mametchi[] = {fronthappy, frontwaving, frontmeh, frontawkward,
                         goingleft, leftmouthop, frontdown, sittinghappy, 
                         sittingmouthop, sittingsurprised};
 
+// Food sprites with full to 2/3 to 1/3 (for eating animations)
+spriteFramePtr chipsFood[] = {chips, chips2third, chips1third};
+spriteFramePtr medFood[] = {med, med2third, med1third};
+
 // possible species
 enum species {mametchi}; 
 // names (for info)
