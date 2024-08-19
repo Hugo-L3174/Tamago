@@ -2,11 +2,13 @@ cmake_minimum_required(VERSION 3.13)
 
 set(PICO_BOARD pico_w CACHE STRING "Board type")
 
-# initialize pico-sdk from submodule
-include(pico-sdk/pico_sdk_init.cmake)
+# # initialize pico-sdk from submodule
+# include(pico-sdk/pico_sdk_init.cmake)
+# initialize pico-sdk (assuming it is at the same level as the Tamago repo)
+include(../pico-sdk/pico_sdk_init.cmake)
 
 # pico extras should be added for the deep sleep functions
-include(pico-extras/external/pico_extras_import.cmake)
+include(../pico-extras/external/pico_extras_import.cmake)
 
 project(tamago)
 
@@ -51,6 +53,7 @@ target_link_libraries(TamaBoard
     hardware_i2c # i2c optional: was for UPS
     hardware_adc 
     hardware_sleep
+    hardware_clocks
 )
 
 add_library(Bluetooth STATIC

@@ -15,6 +15,7 @@ The other functions were added after
 #include "hardware/clocks.h"
 #include "hardware/rosc.h"
 #include "hardware/structs/scb.h"
+#include "pico/runtime_init.h"
 
 #include "../Config/DEV_Config.h"
 #include "../OLED/OLED_1in5.h"
