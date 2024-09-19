@@ -81,6 +81,17 @@ target_compile_definitions(Bluetooth PUBLIC
 # run bluetooth cmake in subdirectory
 # add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/Bluetooth/)
 
+add_library(Games STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/games/dino.c
+)
+
+target_include_directories(Games PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/games/
+)
+
+target_link_libraries(Games
+    pico_stdlib
+)
 
 add_executable(tamago
     tamago.c 
@@ -90,6 +101,7 @@ add_executable(tamago
 target_link_libraries(tamago 
     TamaBoard
     Bluetooth
+    Games
 )
 
 # create map/bin/hex/uf2 file in addition to ELF.

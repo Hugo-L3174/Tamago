@@ -3,12 +3,7 @@
 
 void Setup() 
 {
-    gameOver_ = false;
-    x_ = 5;
-    z_ = height_ - 2;
-    score_ = 0;
-    jumping_ = false;
-    velocityZ_ = 0;
+    dinoGame Game = {false, 50, 20, 5, 0, 0, false, 0.0, -0.5, 4.0};
     // init rand seed 
     srand(time(0));
 }
