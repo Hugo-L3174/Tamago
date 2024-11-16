@@ -15,22 +15,23 @@ project(tamago)
 # initialize the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-add_library(Fonts STATIC 
+add_library(GUI STATIC 
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font8.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font12.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font16.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font20.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font24.c
+    ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/GUI_Paint.c
 )
 
-target_include_directories(Fonts PUBLIC
+target_include_directories(GUI PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/
+    ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/
 )
 
 add_library(TamaBoard STATIC 
     ${CMAKE_CURRENT_LIST_DIR}/lib/Config/DEV_Config.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/OLED/OLED_1in5.c
-    ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/GUI_Paint.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Buzzer/Buzz.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/UPS/Pico_UPS.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/UPS/power_status.c
@@ -39,13 +40,11 @@ add_library(TamaBoard STATIC
 target_include_directories(TamaBoard PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/lib/Config/
     ${CMAKE_CURRENT_LIST_DIR}/lib/OLED/
-    ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/
     ${CMAKE_CURRENT_LIST_DIR}/lib/Buzzer/
     ${CMAKE_CURRENT_LIST_DIR}/lib/UPS/
 )
                                                                         
 target_link_libraries(TamaBoard
-    Fonts 
     pico_stdlib 
     pico_cyw43_arch_none # for battery reading (this gpio is controlled by cyw43) and bluetooth
     hardware_spi 
@@ -91,6 +90,7 @@ target_include_directories(Games PUBLIC
 
 target_link_libraries(Games
     pico_stdlib
+    GUI
 )
 
 add_executable(tamago
@@ -101,6 +101,7 @@ add_executable(tamago
 target_link_libraries(tamago 
     TamaBoard
     Bluetooth
+    GUI
     Games
 )
 

@@ -22,8 +22,14 @@
 #ifndef __GUI_PAINT_H
 #define __GUI_PAINT_H
 
-#include "../Config/DEV_Config.h"
 #include "../Fonts/fonts.h"
+
+#ifndef DATATYPES
+#define DATATYPES
+#define UBYTE   uint8_t
+#define UWORD   uint16_t
+#define UDOUBLE uint32_t
+#endif
 
 /**
  * Image attributes

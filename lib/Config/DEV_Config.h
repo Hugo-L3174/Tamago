@@ -38,9 +38,12 @@
 /**
  * data
 **/
+#ifndef DATATYPES
+#define DATATYPES
 #define UBYTE   uint8_t
 #define UWORD   uint16_t
 #define UDOUBLE uint32_t
+#endif
 
 //OLED Define
 #define OLED_CS         17 // GPIO 17 (physical pin 22)	is SPI0 CS on the pico	
