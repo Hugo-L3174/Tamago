@@ -89,7 +89,6 @@ target_include_directories(Games PUBLIC
 )
 
 target_link_libraries(Games
-    pico_stdlib
     GUI
 )
 

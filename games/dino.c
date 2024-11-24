@@ -1,142 +1,167 @@
 #include "dino.h"
+#include "GUI_Paint.h"
 
-
-void Setup() 
+dinoGame dinoSetup() 
 {
-    dinoGame Game = {false, 50, 20, 5, 0, 0, false, 0.0, -0.5, 4.0};
+    dinoGame Game = {false, 128, 98, 49, 0, 0, 0, false, 0, -1, 0, NULL};
+    midButtonPressedDino_ = false;
+    rButtonPressedDino_ = false;
     // init rand seed 
-    srand(time(0));
+    srand(0);
+    return Game;
 }
 
-void Draw() 
+void dinoDraw(dinoGame *game, uint8_t **screenBuffer, const unsigned char **spriteFramePtr) 
 {
-    system("cls"); 
+    // Character
+    Paint_DrawImage_Flipped(spriteFramePtr[leftmouthopenFrame], game->x_, 100 - game->charaHeight_ - game->z_, 38, 49);
+    // Paint_DrawImage(spriteFramePtr[leftmouthopenFrame], 30, 30, 38, 49);
+    // Paint_DrawImage(spriteFramePtr[goingleftFrame], game->x_, game->z_, 38, 49);
+
+    // Ground
+    Paint_DrawRectangle(0, 101, 128, 105, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+
+    // Cacti
+    cactus * currentCact = game->firstCactus_;
+    while (currentCact != NULL)
+    {
+        int posX = currentCact->posX_;
+        int height = currentCact->height_;
+        for (size_t i = 0; i < height; i++)
+        {
+            Paint_DrawRectangle(posX, 31 + 6*i, posX + 6, 37 + 6*i, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
+        }
+        
+        currentCact = currentCact->next_;
+    }
+
+    // Score
+    Paint_DrawString_EN(0, 110, "Score:", &Font12, 0x8, 0x1);
+    Paint_DrawNum(44, 110, game->score_, &Font12, 0, 0x8, 0x1);
+}
+
+
+
+void dinoLogic(dinoGame *game) 
+{
+    // If not during a jump
+    if (!game->jumping_)
+    {
+        // If on the ground and M button pressed, adding jump strength
+        if (midButtonPressedDino_)
+        {
+            game->jumpStrength_ += 1;
+        }
+        // If there is strength and button is not pressed, then it was released and we jump
+        else if (!(game->jumpStrength_ == 0) && !midButtonPressedDino_)
+        {
+            game->velocityZ_ = game->jumpStrength_;
+            game->jumpStrength_ = 0;
+            game->jumping_ = true;
+        }
+        
+    }
     
-    // Upper screen
-    for (int i = 0; i < width_; i++) cout << "#";
-    cout << endl;
-
-    // Draw game
-    for (int i = 0; i < height_; i++) 
+    // If we are jumping apply gravity and update z pos
+    if (game->jumping_) 
     {
-        for (int j = 0; j < width_; j++) 
-        {
-            bool printed = false;
-
-            // Draw dino
-            if (i == y && j == x) 
-            {
-                cout << "D";
-                printed = true;
-            }
-
-            // Draw cacti
-            for (const auto& cactus : cacti_) 
-            {
-                if (j == cactus.posX_ && i >= height_ - 2 - cactus.height_ && i < height_ - 1) 
-                {
-                    cout << "|";
-                    printed = true;
-                    break;
-                }
-            }
-
-            if (!printed) 
-            {
-                if (i == height_ - 1) cout << "#";  // ground
-                else cout << " ";
-            }
-        }
-        cout << endl;
-    }
-
-    // print score
-    cout << "Score: " << score << endl;
-}
-
-void Input() 
-{
-    // Do this as a callback
-    // While pressing and on the ground, add jumping power
-    if (_kbhit()) 
-    {
-        char key = _getch();
-        if (key == ' ' && y == height_ - 2) 
-        {  
-            // If on the ground, jump
-            jumping_ = true;
-            velocityY_ = jumpStrength_; 
-        }
-    }
-}
-
-void Logic() {
-    // Apply gravity if in the air
-    if (jumping_ || z_ < height_ - 2) 
-    {
-        velocityZ_ += gravity_; 
-        z_ += velocityZ_;
-
-        // Max height
-        if (z_ < 0) 
-        {
-            z_ = 0;
-            velocityZ_ = 0;
-        }
+        game->z_ += game->velocityZ_;
+        game->velocityZ_ += game->gravity_; 
 
         // Touching ground
-        if (z_ >= height_ - 2) 
+        if (game->z_ <= 0) 
         {
-            z_ = height_ - 2;
-            velocityZ_ = 0;
-            jumping_ = false;
+            game->z_ = 0;
+            game->velocityZ_ = 0;
+        }
+
+        // Max height
+        if (game->z_ >= game->height_ - game->charaHeight_) 
+        {
+            game->z_ = game->height_ - game->charaHeight_;
+            // Stop going up
+            if (game->velocityZ_ > 0)
+            {
+                game->velocityZ_ = 0;
+            }
         }
     }
 
+
     // Move cacti
-    for (auto& cactus : cacti_) 
+    cactus * currentCact = game->firstCactus_;
+    while (currentCact != NULL)
     {
-        cactus.posX--;
+        currentCact->posX_--;
+        currentCact = currentCact->next_;
     }
 
     // Remove offscreen cacti
-    if (!cacti_.empty() && cacti_[0].posX_ < 0) 
+    currentCact = game->firstCactus_;
+    while (currentCact !=NULL)
     {
-        cacti_.erase(cacti_.begin());
-        score_++;
+        if (currentCact->posX_ < 0)
+        {
+            // Setting new first cactus in list
+            game->firstCactus_ = game->firstCactus_->next_;
+            // freeing offscreen cactus
+            free(currentCact);
+        }
+        
+        currentCact = currentCact->next_;
     }
 
     // Create new cacti at random intervals (1/20 iteration)
+    currentCact = game->firstCactus_;
     if (rand() % 20 == 0) 
     {
-        Cactus newCactus;
-        newCactus.posX_ = width_ - 2;
-        // random height
-        newCactus.height_ = rand() % 3 + 1; 
-        cacti_.push_back(newCactus);
+        while (currentCact->next_ != NULL)
+        {
+            currentCact = currentCact->next_;
+        }
+        // current is now the last
+        currentCact->next_ = (cactus *) malloc(sizeof(cactus));
+        currentCact = currentCact->next_;
+        currentCact->posX_ = game->width_ - 2;
+        // random height 1-4
+        currentCact->height_ = rand() % 3 + 1;
+        currentCact->next_ = NULL;
     }
 
     // Check collision
-    for (const auto& cactus : cacti_) 
+    currentCact = game->firstCactus_;
+    while (currentCact !=NULL)
     {
-        if (cactus.posX_ == x_ && z_ >= height_ - 2 - cactus.height_) 
+        if (game->x_ == currentCact->posX_ && game->z_ <= currentCact->height_) 
         {
-            gameOver_ = true;
+            game->gameOver_ = true;
         }
+        currentCact = currentCact->next_;
     }
+    game->score_++;
+    
 }
 
-int main() 
+int playDino(uint8_t *screenBuffer, const unsigned char **spriteFramePtr, void (*dispFunction)(uint8_t *screenBuffer), int (*debouceCheck)()) 
 {
-    Setup();
-    while (!gameOver_) 
+    dinoGame game = dinoSetup();
+
+    while (!game.gameOver_) 
     {
-        Draw();
-        Input();
-        Logic();
-        Sleep(100);
+        dinoLogic(&game);
+        dinoDraw(&game, &screenBuffer, spriteFramePtr);
+        dispFunction(screenBuffer);
+        // Sleep(50);
     }
 
-    cout << "Game Over!" << endl;
-    return 0;
+    Paint_DrawString_EN(110, 5, "Game over !", &Font12, 0x3, 0xe);
+    dispFunction(screenBuffer);
+    return game.score_;
 }
+
+// 1. pass screen buffer + update screen flag
+// 2. run logic with game as arg
+// -> change buttons irq to jump etc
+// 3. run update buffer with buffer and flag as arg + set flag to true at the end
+// 4. outside of this find a way to keep polling update flag to update screen (callback on flag?)
+
