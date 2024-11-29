@@ -10,17 +10,22 @@
 #include "pico/cyw43_arch.h"
 //#include "hardware/rtc.h"
 
+/* Custom hardware libs */
 #include "lib/Config/DEV_Config.h"
 #include "lib/OLED/OLED_1in5.h"
-#include "lib/GUI/GUI_Paint.h"
-#include "lib/Fonts/fonts.h"
 #include "lib/Buzzer/Buzz.h"
 #include "lib/UPS/Pico_UPS.h"
 #include "lib/UPS/power_status.h"
 
+/* Custom bt config lib */
 #include "lib/Bluetooth/client.h"
 
+/* GUI lib */
+#include "lib/GUI/GUI_Paint.h"
 #include "pic/sprites.h"
+
+/* Games */
+#include "games/dino.h"
 
 
 // total number of possibilities for species (for random selection)
@@ -54,10 +59,32 @@ const char *infoOptions[6] = {"Nom:", "Age:", "Faim:", "Bonheur:", "Espece:", "R
 const char *settingsOptions[2] = {"Luminosite", "Retour"};
 
 // possible screens
-enum screens {mainScreen, foodScreen, playScreen, washScreen, healScreen, commScreen, bedtimeScreen, infosScreen, settingsScreen};
+enum screens {mainScreen, 
+              foodScreen,
+              playScreen, 
+              washScreen, 
+              healScreen, 
+              commScreen, 
+              bedtimeScreen, 
+              infosScreen, 
+              settingsScreen
+             };
 
+#ifndef FRAMENAMES
+#define FRAMENAMES
 // possible frames for sprites
-enum frames {fronthappyFrame, frontwavingFrame, frontmehFrame, frontawkwardFrame, goingleftFrame, leftmouthopenFrame, goingfrontFrame, sittinghappyFrame, sittingmouthopenFrame, sittingsurprisedFrame};
+enum frames {fronthappyFrame, 
+             frontwavingFrame, 
+             frontmehFrame, 
+             frontawkwardFrame, 
+             goingleftFrame, 
+             leftmouthopenFrame, 
+             goingfrontFrame, 
+             sittinghappyFrame, 
+             sittingmouthopenFrame, 
+             sittingsurprisedFrame
+            };
+#endif
 
 // sprite structure
 typedef struct{
@@ -140,6 +167,12 @@ int image_init(void);
 // menu logic to be called as GPIO irq callback
 void menu_logic(uint gpio, uint32_t events);
 
+/* buttons debounce checker: uses hardware libs here and so can be passed as argument to
+hardware abstracted functions.
+returns 1 (true in c) if debounce delay has passed and 0 (false) if not
+*/
+int debounceTimerPassed(const int delay);
+
 int timers_test(void);
 
 // Refresh main menu icons area
@@ -171,10 +204,13 @@ void BluetoothComm(int mode);
 void batteryPoll();
 
 // GUI utils
-void DrawAllIcons(void);
+void DrawAllIcons();
 void ClearIconsArea(UWORD Color);
-void UserEnterString(void);
+void UserEnterString();
 void UserInitRTC();
+
+// Games
+void runDino();
 
 /****************************************************************
 *                   Internal global variables
@@ -198,13 +234,14 @@ volatile bool cursorToUpdate_ = false;
 volatile int bluetoothMode_ = 0; 
 volatile bool batteryToUpdate_ = true;
 bool displayToUpdate_ = false;
+bool runningDino_ = false;
 
 // Timers for timed callbacks
 struct repeating_timer hungerTimer_, spriteMoveTimer_, batteryPollTimer_;
 
 // timer for debounce control
-unsigned long time;
-const int delayTime = 200; // Delay between every push button
+unsigned long time_;
+const int delayTime_ = 200; // Delay between every push button
 
 // movement variable
 move movement_;
@@ -216,6 +253,9 @@ bool battery_status = true;
 char power_src[] = "BatInconnue";
 uint8_t batteryVal;
 bool lowBattery = false;
+
+// games highscore variables
+int dinoHighScore_ = 0;
 
 /****************************************************************
 *                   Callback functions
@@ -275,8 +315,20 @@ int64_t walk_4_callback(alarm_id_t id, void *user_data) {
     return 0;
 }
 
-// algo logic: core 0 initializes everything and core 1 should update the looping idle animation 
-// (internal shared variable between the cores?)
-// core 1 : timeout then update internal image to display
-// image will be constructed by core 0 then displayed each loop
-// Question: how to wait for image modification before displaying? probably setting a flag that is reset after each update
+// TODO find a way to put the games callbacks in games files: need to define debounce function inside but without hardware functions...
+void dinoInputCallback(unsigned int gpio, uint32_t events) 
+{
+    if (debounceTimerPassed(20)){
+        switch (gpio)
+        {
+        case MBUTT:
+            midButtonPressedDino_ = !midButtonPressedDino_;
+            break;
+        case RBUTT:
+            rButtonPressedDino_ = true;
+            break;
+        default:
+            break;
+        }
+    }
+}

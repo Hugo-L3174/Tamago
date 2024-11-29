@@ -67,7 +67,7 @@ int image_init()
 // This is the main loop for core 0
 int main() {
 	// init debounce timer
-	time = to_ms_since_boot(get_absolute_time());
+	time_ = to_ms_since_boot(get_absolute_time());
 	if(hardware_setup() != 0) {
 		return -1;
 	}
@@ -138,7 +138,14 @@ int buzzTest(void)
 
 int debug_dino(void)
 {
-	
+	// remove buttons callbacks (they should be redefined in the dino game)
+	// (no need to remove them for now in debug)
+	tama_init();
+	// checking rise and fall for middle button
+	gpio_set_irq_enabled_with_callback(MBUTT, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL , true, &dinoInputCallback);
+	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
+
+	dinoHighScore_ = playDino(ScreenImage_, tama_.sprite.frames, &OLED_1in5_Display, &debounceTimerPassed, &busy_wait_ms);
 }
 
 int debug_battery(void)
@@ -300,6 +307,7 @@ int debug_overlay(void)
 	add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
 
 	// this sets the gpio irq callback, will be the same for the 3 buttons
+	// if done this way, the callback will be the same for every gpio so the callback should handle the switch cases
 	gpio_set_irq_enabled_with_callback(LBUTT, GPIO_IRQ_EDGE_RISE , true, &menu_logic);
 	gpio_set_irq_enabled(MBUTT, GPIO_IRQ_EDGE_RISE , true);
 	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
@@ -328,6 +336,16 @@ int debug_overlay(void)
 			batteryPoll();
 			menuToUpdate_ = true;
 			batteryToUpdate_ = false;
+		}
+
+		if (runningDino_)
+		{
+			prePowerDown();
+			runDino();
+			postPowerUp();
+			runningDino_ = false;
+			menuToUpdate_ = true;
+			displayToUpdate_ = true;
 		}
 		
 		if (menuToUpdate_ || cursorToUpdate_)
@@ -652,6 +670,34 @@ void EnterString()
 	*/
 }
 
+void runDino()
+{
+	// checking rise and fall for middle button
+	gpio_set_irq_enabled_with_callback(MBUTT, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL , true, &dinoInputCallback);
+	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
+
+	int dinoNewScore = playDino(ScreenImage_, tama_.sprite.frames, &OLED_1in5_Display, &debounceTimerPassed, &busy_wait_ms);
+	if (dinoHighScore_ < dinoNewScore)
+	{
+		dinoHighScore_ = dinoNewScore;
+	}
+
+	gpio_set_irq_enabled(MBUTT, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL , false);
+	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , false);
+}
+
+int debounceTimerPassed(const int delay)
+{
+	int ret = 0;
+	if ((to_ms_since_boot(get_absolute_time())-time_)>delay) {
+	// Recommend to not to change the position of this line
+		time_ = to_ms_since_boot(get_absolute_time());
+		ret = 1;
+	}
+
+	return ret;
+}
+
 void feed(spriteFramePtr *foodSprite, int foodVal)
 {
 	Paint_Clear(BLACK);
@@ -785,6 +831,7 @@ void postPowerUp()
 	// TODO: hunger callback, happiness etc...
 
 	// this sets the gpio irq callback, will be the same for the 3 buttons
+	// if done this way, the callback will be the same for every gpio so the callback should handle the switch cases
 	gpio_set_irq_enabled_with_callback(LBUTT, GPIO_IRQ_EDGE_RISE , true, &menu_logic);
 	gpio_set_irq_enabled(MBUTT, GPIO_IRQ_EDGE_RISE , true);
 	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
@@ -972,11 +1019,11 @@ void RefreshMenu()
 
 void menu_logic(uint gpio, uint32_t events) 
 {	
-	if ((to_ms_since_boot(get_absolute_time())-time)>delayTime) {
-	// Recommend to not to change the position of this line
-	time = to_ms_since_boot(get_absolute_time());
+	// if ((to_ms_since_boot(get_absolute_time())-time_)>delayTime_) {
+	// // Recommend to not to change the position of this line
+	// time_ = to_ms_since_boot(get_absolute_time());
 	
-	
+	if (debounceTimerPassed(delayTime_)){
 
     switch (gpio)
     {
@@ -1147,9 +1194,7 @@ void menu_logic(uint gpio, uint32_t events)
             switch (game_.playCursor)
             {
             case hop:
-				cancel_repeating_timer(&spriteMoveTimer_);
-				/* code */
-				add_repeating_timer_ms(2000, spriteMove_callback, NULL, &spriteMoveTimer_);
+				runningDino_ = true;
                 break;
             case playCancel:
                 game_.currentScreen = mainScreen;
