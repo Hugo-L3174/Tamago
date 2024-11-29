@@ -38,13 +38,13 @@ typedef struct{
     const int width_;
     const int height_;
     const int charaHeight_;
-    int x_, z_, score_;
+    int charaPosX_, charaPosZ_, score_;
     bool jumping_;
     // vertical velocity of dino
-    int velocityZ_;
-    const int gravity_;
+    float velocityZ_;
+    const float gravity_;
     // jumping power
-    int jumpStrength_;
+    float jumpStrength_;
     cactus * firstCactus_;
 } dinoGame;
 
@@ -53,8 +53,8 @@ dinoGame dinoSetup();
 void dinoDraw(dinoGame *game, uint8_t **screenBuffer, const unsigned char **spriteFramePtr);
 void dinoLogic(dinoGame *game);
 // buttons logic to be called as GPIO irq callback
-void dinoInputCallback(unsigned int gpio, uint32_t events);
-int playDino(uint8_t *screenBuffer, const unsigned char **spriteFramePtr, void (*dispFunction)(uint8_t *screenBuffer), int (*debouceCheck)());
+// void dinoInputCallback(unsigned int gpio, uint32_t events);
+int playDino(uint8_t *screenBuffer, const unsigned char **spriteFramePtr, void (*dispFunction)(uint8_t *screenBuffer), int (*debouceCheck)(), void (*waitFunction)(uint32_t waitTime));
 
-bool midButtonPressedDino_;
-bool rButtonPressedDino_;
+volatile bool midButtonPressedDino_;
+volatile bool rButtonPressedDino_;

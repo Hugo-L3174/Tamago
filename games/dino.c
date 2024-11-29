@@ -3,18 +3,19 @@
 
 dinoGame dinoSetup() 
 {
-    dinoGame Game = {false, 128, 98, 49, 0, 0, 0, false, 0, -1, 0, NULL};
+    dinoGame Game = {false, 128, 98, 49, 0, 0, 0, false, 0, -0.5, 0, NULL};
     midButtonPressedDino_ = false;
     rButtonPressedDino_ = false;
     // init rand seed 
-    srand(0);
+    srand(2);
     return Game;
 }
 
 void dinoDraw(dinoGame *game, uint8_t **screenBuffer, const unsigned char **spriteFramePtr) 
 {
     // Character
-    Paint_DrawImage_Flipped(spriteFramePtr[leftmouthopenFrame], game->x_, 100 - game->charaHeight_ - game->z_, 38, 49);
+    Paint_Clear(BLACK);
+    Paint_DrawImage_Flipped(spriteFramePtr[leftmouthopenFrame], game->charaPosX_, 100 - game->charaHeight_ - game->charaPosZ_, 38, 49);
     // Paint_DrawImage(spriteFramePtr[leftmouthopenFrame], 30, 30, 38, 49);
     // Paint_DrawImage(spriteFramePtr[goingleftFrame], game->x_, game->z_, 38, 49);
 
@@ -25,11 +26,9 @@ void dinoDraw(dinoGame *game, uint8_t **screenBuffer, const unsigned char **spri
     cactus * currentCact = game->firstCactus_;
     while (currentCact != NULL)
     {
-        int posX = currentCact->posX_;
-        int height = currentCact->height_;
-        for (size_t i = 0; i < height; i++)
+        for (size_t i = 0; i < currentCact->height_; i++)
         {
-            Paint_DrawRectangle(posX, 31 + 6*i, posX + 6, 37 + 6*i, WHITE, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
+            Paint_DrawRectangle(currentCact->posX_, 94 - 6*i, currentCact->posX_ + 6, 100 - 6*i, WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
         }
         
         currentCact = currentCact->next_;
@@ -65,20 +64,21 @@ void dinoLogic(dinoGame *game)
     // If we are jumping apply gravity and update z pos
     if (game->jumping_) 
     {
-        game->z_ += game->velocityZ_;
+        game->charaPosZ_ += game->velocityZ_;
         game->velocityZ_ += game->gravity_; 
 
         // Touching ground
-        if (game->z_ <= 0) 
+        if (game->charaPosZ_ <= 0) 
         {
-            game->z_ = 0;
+            game->charaPosZ_ = 0;
             game->velocityZ_ = 0;
+            game->jumping_ = false;
         }
 
         // Max height
-        if (game->z_ >= game->height_ - game->charaHeight_) 
+        if (game->charaPosZ_ >= game->height_ - game->charaHeight_) 
         {
-            game->z_ = game->height_ - game->charaHeight_;
+            game->charaPosZ_ = game->height_ - game->charaHeight_;
             // Stop going up
             if (game->velocityZ_ > 0)
             {
@@ -92,47 +92,62 @@ void dinoLogic(dinoGame *game)
     cactus * currentCact = game->firstCactus_;
     while (currentCact != NULL)
     {
-        currentCact->posX_--;
+        currentCact->posX_ -= 2;
         currentCact = currentCact->next_;
     }
 
     // Remove offscreen cacti
-    currentCact = game->firstCactus_;
-    while (currentCact !=NULL)
+    // Only need to check first element since they move step by step
+    if (game->firstCactus_ != NULL)
     {
-        if (currentCact->posX_ < 0)
+        if (game->firstCactus_->posX_ < 0)
         {
             // Setting new first cactus in list
+            currentCact = game->firstCactus_;
             game->firstCactus_ = game->firstCactus_->next_;
             // freeing offscreen cactus
             free(currentCact);
         }
-        
-        currentCact = currentCact->next_;
     }
+    
 
-    // Create new cacti at random intervals (1/20 iteration)
+    // Create new cacti at random intervals (~1/200 iteration)
     currentCact = game->firstCactus_;
-    if (rand() % 20 == 0) 
+    if (rand() % 200 == 0)
     {
-        while (currentCact->next_ != NULL)
+        if (currentCact == NULL)
         {
-            currentCact = currentCact->next_;
+            // there are no cacti, ie current is the last, allocate
+            game->firstCactus_ = (cactus *) malloc(sizeof(cactus));
+            game->firstCactus_->posX_ = game->width_ - 2;
+            // random height 1-4
+            game->firstCactus_->height_ = rand() % 3 + 1;
+            game->firstCactus_->next_ = NULL;
         }
-        // current is now the last
-        currentCact->next_ = (cactus *) malloc(sizeof(cactus));
-        currentCact = currentCact->next_;
-        currentCact->posX_ = game->width_ - 2;
-        // random height 1-4
-        currentCact->height_ = rand() % 3 + 1;
-        currentCact->next_ = NULL;
+        else
+        {
+            // there is at least one cactus, get to the end of the list then allocate
+            while (currentCact->next_ != NULL)
+            {
+                currentCact = currentCact->next_;
+            }
+            // current is now the last
+            currentCact->next_ = (cactus *) malloc(sizeof(cactus));
+            currentCact = currentCact->next_;
+
+            currentCact->posX_ = game->width_ - 2;
+            // random height 1-4
+            currentCact->height_ = rand() % 3 + 1;
+            currentCact->next_ = NULL;
+        }
+        
     }
 
     // Check collision
     currentCact = game->firstCactus_;
     while (currentCact !=NULL)
     {
-        if (game->x_ == currentCact->posX_ && game->z_ <= currentCact->height_) 
+        if (game->charaPosX_ == currentCact->posX_ && game->charaPosZ_ <= currentCact->height_) 
         {
             game->gameOver_ = true;
         }
@@ -142,26 +157,25 @@ void dinoLogic(dinoGame *game)
     
 }
 
-int playDino(uint8_t *screenBuffer, const unsigned char **spriteFramePtr, void (*dispFunction)(uint8_t *screenBuffer), int (*debouceCheck)()) 
+int playDino(uint8_t *screenBuffer, const unsigned char **spriteFramePtr, void (*dispFunction)(uint8_t *screenBuffer), int (*debouceCheck)(), void (*waitFunction)(uint32_t waitTime)) 
 {
     dinoGame game = dinoSetup();
 
-    while (!game.gameOver_) 
+    while (!(game.gameOver_ || rButtonPressedDino_)) 
     {
         dinoLogic(&game);
         dinoDraw(&game, &screenBuffer, spriteFramePtr);
         dispFunction(screenBuffer);
-        // Sleep(50);
     }
 
-    Paint_DrawString_EN(110, 5, "Game over !", &Font12, 0x3, 0xe);
+    Paint_Clear(BLACK);
+    Paint_DrawString_EN(25, 30, "Game over !", &Font12, 0x3, 0xe);
+    Paint_DrawString_EN(30, 70, "Score:", &Font12, 0x8, 0x1);
+    Paint_DrawNum(74, 70, game.score_, &Font12, 0, 0x8, 0x1);
     dispFunction(screenBuffer);
+    waitFunction(5000);
     return game.score_;
 }
 
-// 1. pass screen buffer + update screen flag
-// 2. run logic with game as arg
-// -> change buttons irq to jump etc
-// 3. run update buffer with buffer and flag as arg + set flag to true at the end
-// 4. outside of this find a way to keep polling update flag to update screen (callback on flag?)
+// Callback correction: find a way to keep the same callback across everything: button presses must update a global flag that should be used by all logics
 
