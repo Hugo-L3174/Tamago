@@ -49,12 +49,12 @@ typedef struct{
 } dinoGame;
 
 
-dinoGame dinoSetup();
+dinoGame dinoSetup(uint64_t * randSeed);
 void dinoDraw(dinoGame *game, uint8_t **screenBuffer, const unsigned char **spriteFramePtr);
 void dinoLogic(dinoGame *game);
 // buttons logic to be called as GPIO irq callback
 // void dinoInputCallback(unsigned int gpio, uint32_t events);
-int playDino(uint8_t *screenBuffer, const unsigned char **spriteFramePtr, void (*dispFunction)(uint8_t *screenBuffer), int (*debouceCheck)(), void (*waitFunction)(uint32_t waitTime));
+int playDino(uint8_t *screenBuffer, const unsigned char **spriteFramePtr, uint64_t * randSeed, void (*dispFunction)(uint8_t *screenBuffer), int (*debouceCheck)(), void (*waitFunction)(uint32_t waitTime));
 
 volatile bool midButtonPressedDino_;
 volatile bool rButtonPressedDino_;

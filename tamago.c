@@ -101,7 +101,7 @@ au lieu d'une seule screen image, faire 3 images: une pour le sprite et deux pou
 int tama_init(void)
 {
 	// initialize random species
-	int time = time_us_32(); //get_absolute_time();
+	uint64_t time = get_absolute_time();
 	srand(time);
 	int randomSpecies = rand() % (species_nb + 1); // +1 to get full range with modulo (?)
 	randomSpecies = mametchi;
@@ -145,7 +145,9 @@ int debug_dino(void)
 	gpio_set_irq_enabled_with_callback(MBUTT, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL , true, &dinoInputCallback);
 	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
 
-	dinoHighScore_ = playDino(ScreenImage_, tama_.sprite.frames, &OLED_1in5_Display, &debounceTimerPassed, &busy_wait_ms);
+	uint64_t randSeed = get_absolute_time();
+
+	dinoHighScore_ = playDino(ScreenImage_, tama_.sprite.frames, &randSeed, &OLED_1in5_Display, &debounceTimerPassed, &busy_wait_ms);
 }
 
 int debug_battery(void)
@@ -676,7 +678,9 @@ void runDino()
 	gpio_set_irq_enabled_with_callback(MBUTT, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL , true, &dinoInputCallback);
 	gpio_set_irq_enabled(RBUTT, GPIO_IRQ_EDGE_RISE , true);
 
-	int dinoNewScore = playDino(ScreenImage_, tama_.sprite.frames, &OLED_1in5_Display, &debounceTimerPassed, &busy_wait_ms);
+	uint64_t randSeed = get_absolute_time();
+
+	int dinoNewScore = playDino(ScreenImage_, tama_.sprite.frames, &randSeed, &OLED_1in5_Display, &debounceTimerPassed, &busy_wait_ms);
 	if (dinoHighScore_ < dinoNewScore)
 	{
 		dinoHighScore_ = dinoNewScore;

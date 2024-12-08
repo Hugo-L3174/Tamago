@@ -1,13 +1,14 @@
 #include "dino.h"
 #include "GUI_Paint.h"
 
-dinoGame dinoSetup() 
+
+dinoGame dinoSetup(uint64_t * randSeed) 
 {
-    dinoGame Game = {false, 128, 98, 49, 0, 0, 0, false, 0, -0.5, 0, NULL};
+    dinoGame Game = {false, 128, 98, 49, 0, 0, 0, false, 0, -0.3, 0, NULL};
     midButtonPressedDino_ = false;
     rButtonPressedDino_ = false;
     // init rand seed 
-    srand(2);
+    srand(*randSeed);
     return Game;
 }
 
@@ -147,7 +148,12 @@ void dinoLogic(dinoGame *game)
     currentCact = game->firstCactus_;
     while (currentCact !=NULL)
     {
-        if (game->charaPosX_ == currentCact->posX_ && game->charaPosZ_ <= currentCact->height_) 
+        // logic for width check:
+        // sprite is 38 wide total but body only 20 wide -> left is posX + 8 and right is posX + 28
+        // cactus is 6 wide -> left is posX and right is posX + 6
+        // intersection if right of character overlaps with left cactus or left of character with right cactus
+        // height check is simply height * 6 (cactus "unit" height)
+        if (game->charaPosX_ + 28 >= currentCact->posX_ && game->charaPosX_ + 8 <= currentCact->posX_ + 6 && game->charaPosZ_ <= currentCact->height_ * 6) 
         {
             game->gameOver_ = true;
         }
@@ -157,9 +163,13 @@ void dinoLogic(dinoGame *game)
     
 }
 
-int playDino(uint8_t *screenBuffer, const unsigned char **spriteFramePtr, void (*dispFunction)(uint8_t *screenBuffer), int (*debouceCheck)(), void (*waitFunction)(uint32_t waitTime)) 
+int playDino(uint8_t *screenBuffer, const unsigned char **spriteFramePtr, uint64_t * randSeed, void (*dispFunction)(uint8_t *screenBuffer), int (*debouceCheck)(), void (*waitFunction)(uint32_t waitTime)) 
 {
-    dinoGame game = dinoSetup();
+    dinoGame game = dinoSetup(randSeed);
+
+    // make sure buttons start debounced
+    rButtonPressedDino_ = false;
+    midButtonPressedDino_ = false;
 
     while (!(game.gameOver_ || rButtonPressedDino_)) 
     {
@@ -173,7 +183,7 @@ int playDino(uint8_t *screenBuffer, const unsigned char **spriteFramePtr, void (
     Paint_DrawString_EN(30, 70, "Score:", &Font12, 0x8, 0x1);
     Paint_DrawNum(74, 70, game.score_, &Font12, 0, 0x8, 0x1);
     dispFunction(screenBuffer);
-    waitFunction(5000);
+    waitFunction(4000);
     return game.score_;
 }
 
