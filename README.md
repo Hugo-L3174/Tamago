@@ -25,6 +25,6 @@ Here we assume they were cloned at the same level as this repository.
   1. To get the source files to display they must first be converted to a 4 bits color scale (16 colors) bmp (using gimp: Image > Mode > Indexed)
 
   2. Then convert the images to header files using for example [bmp2src](https://github.com/cbm80amiga/bmp2src/) and convert using
-    ```sh
+   ```sh
     bmp2src image.bmp > image.h
-    ```
+   ```
