@@ -1,10 +1,9 @@
-#include <stdio.h>
-#include "pico/stdlib.h"
-#include "pico/binary_info.h"
 #include "hardware/i2c.h"
+#include "pico/binary_info.h"
+#include "pico/stdlib.h"
+#include <stdio.h>
 
 #include "Pico_UPS.h"
-
 
 /*!
  *   @brief  Class that stores state and functions for interacting with INA219
@@ -13,15 +12,15 @@
 // void INA219 {
 // // public:
 //   INA219(uint8_t addr = INA219_ADDRESS);
-  // void begin();
-  // void setCalibration_32V_2A();
-  // float getBusVoltage_V();
-  // float getShuntVoltage_mV();
-  // float getCurrent_mA();
-  // float getPower_mW();
-  // void powerSave(bool on);
-  // void wireWriteRegister(uint8_t reg, uint16_t value);
-  // void wireReadRegister(uint8_t reg, uint16_t *value);
+// void begin();
+// void setCalibration_32V_2A();
+// float getBusVoltage_V();
+// float getShuntVoltage_mV();
+// float getCurrent_mA();
+// float getPower_mW();
+// void powerSave(bool on);
+// void wireWriteRegister(uint8_t reg, uint16_t value);
+// void wireReadRegister(uint8_t reg, uint16_t *value);
 // };
 
 // /*!
@@ -41,14 +40,15 @@
  *  @param  value
  *          value to write
  */
-void wireWriteRegister(uint8_t reg, uint16_t value) {
-	
-	uint8_t tmpi[3];
-	tmpi[0] = reg;
-	tmpi[1] = (value >> 8) & 0xFF;
-	tmpi[2] = value & 0xFF;
-	
-	i2c_write_blocking(i2c1, INA219_ADDRESS, tmpi, 3, true); // true to keep master control of bus
+void wireWriteRegister(uint8_t reg, uint16_t value)
+{
+
+  uint8_t tmpi[3];
+  tmpi[0] = reg;
+  tmpi[1] = (value >> 8) & 0xFF;
+  tmpi[2] = value & 0xFF;
+
+  i2c_write_blocking(i2c1, INA219_ADDRESS, tmpi, 3, true); // true to keep master control of bus
 }
 
 /*!
@@ -58,13 +58,14 @@ void wireWriteRegister(uint8_t reg, uint16_t value) {
  *  @param  *value
  *          read value
  */
-void wireReadRegister(uint8_t reg, uint16_t *value) {
+void wireReadRegister(uint8_t reg, uint16_t * value)
+{
 
-	uint8_t tmpi[2];
+  uint8_t tmpi[2];
 
-	i2c_write_blocking(i2c1, INA219_ADDRESS, &reg, 1, true); // true to keep master control of bus
+  i2c_write_blocking(i2c1, INA219_ADDRESS, &reg, 1, true); // true to keep master control of bus
   i2c_read_blocking(i2c1, INA219_ADDRESS, tmpi, 2, true);
-	*value = (((uint16_t)tmpi[0] << 8) | (uint16_t)tmpi[1]);
+  *value = (((uint16_t)tmpi[0] << 8) | (uint16_t)tmpi[1]);
 }
 
 /*!
@@ -74,7 +75,8 @@ void wireReadRegister(uint8_t reg, uint16_t *value) {
  *          occurs at 3.2A.
  *  @note   These calculations assume a 0.1 ohm resistor is present
  */
-void setCalibration_32V_2A() {
+void setCalibration_32V_2A()
+{
   // By default we use a pretty huge range for the input voltage,
   // which probably isn't the most appropriate choice for system
   // that don't use a lot of power.  But all of the calculations
@@ -146,10 +148,8 @@ void setCalibration_32V_2A() {
   wireWriteRegister(INA219_REG_CALIBRATION, ina219_calValue);
 
   // Set Config register to take into account the settings above
-  uint16_t config = INA219_CONFIG_BVOLTAGERANGE_32V |
-                    INA219_CONFIG_GAIN_8_320MV | INA219_CONFIG_BADCRES_12BIT |
-                    INA219_CONFIG_SADCRES_12BIT_32S_17MS |
-                    INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS;
+  uint16_t config = INA219_CONFIG_BVOLTAGERANGE_32V | INA219_CONFIG_GAIN_8_320MV | INA219_CONFIG_BADCRES_12BIT
+                    | INA219_CONFIG_SADCRES_12BIT_32S_17MS | INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS;
   wireWriteRegister(INA219_REG_CONFIG, config);
 }
 
@@ -158,32 +158,33 @@ void setCalibration_32V_2A() {
  *  @param  on
  *          boolean value
  */
-void powerSave(bool on) {
+void powerSave(bool on)
+{
   uint16_t current;
   wireReadRegister(INA219_REG_CONFIG, &current);
   uint8_t next;
-  if (on) {
-    next = current | INA219_CONFIG_MODE_POWERDOWN; 
-  } else {
-    next = current & ~INA219_CONFIG_MODE_POWERDOWN; 
+  if(on)
+  {
+    next = current | INA219_CONFIG_MODE_POWERDOWN;
+  }
+  else
+  {
+    next = current & ~INA219_CONFIG_MODE_POWERDOWN;
   }
   wireWriteRegister(INA219_REG_CONFIG, next);
 }
-
-
-
-
 
 /*!
  *  @brief  Setups the HW (defaults to 32V and 2A for calibration values)
  *  @param theWire the TwoWire object to use
  */
-//void INA219::begin(TwoWire *theWire) {
-void begin() {
+// void INA219::begin(TwoWire *theWire) {
+void begin()
+{
   //_i2c = theWire;
   i2c_init(i2c1, 400 * 1000);
-  gpio_set_function(6,GPIO_FUNC_I2C);
-  gpio_set_function(7,GPIO_FUNC_I2C);
+  gpio_set_function(6, GPIO_FUNC_I2C);
+  gpio_set_function(7, GPIO_FUNC_I2C);
   gpio_pull_up(6);
   gpio_pull_up(7);
   setCalibration_32V_2A();
@@ -193,7 +194,8 @@ void begin() {
  *  @brief  Gets the shunt voltage in mV (so +-327mV)
  *  @return the shunt voltage converted to millivolts
  */
-float getShuntVoltage_mV() {
+float getShuntVoltage_mV()
+{
   uint16_t value;
   wireReadRegister(INA219_REG_SHUNTVOLTAGE, &value);
   return (int16_t)value * 0.01;
@@ -203,8 +205,9 @@ float getShuntVoltage_mV() {
  *  @brief  Gets the shunt voltage in volts
  *  @return the bus voltage converted to volts
  */
-float getBusVoltage_V() {
-	
+float getBusVoltage_V()
+{
+
   uint16_t value;
   wireReadRegister(INA219_REG_BUSVOLTAGE, &value);
   // Shift to the right 3 to drop CNVR and OVF and multiply by LSB
@@ -216,7 +219,8 @@ float getBusVoltage_V() {
  *          config settings and current LSB
  *  @return the current reading convereted to milliamps
  */
-float getCurrent_mA() {
+float getCurrent_mA()
+{
   uint16_t value;
 
   // Sometimes a sharp load will reset the INA219, which will
@@ -237,8 +241,9 @@ float getCurrent_mA() {
  *          config settings and current LSB
  *  @return power reading converted to milliwatts
  */
-float getPower_mW() {
-	
+float getPower_mW()
+{
+
   uint16_t value;
 
   // Sometimes a sharp load will reset the INA219, which will
@@ -249,13 +254,11 @@ float getPower_mW() {
 
   // Now we can safely read the POWER register!
   wireReadRegister(INA219_REG_POWER, &value);
-  
+
   float valueDec = (int16_t)value;
   valueDec *= ina219_powerMultiplier_mW;
   return valueDec;
 }
-
-
 
 // int main() {
 // 	float bus_voltage = 0;
@@ -265,7 +268,7 @@ float getPower_mW() {
 // 	float P=0;
 // 	uint16_t value;
 // 	// INA219 ina(INA219_ADDRESS);
-	
+
 //   const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 //   gpio_init(LED_PIN);
 // 	stdio_init_all();
@@ -285,12 +288,12 @@ float getPower_mW() {
 //     {
 //       P=100;
 //     }
-        
+
 //     printf("Voltage:  %6.3f V\r\n",bus_voltage);
 //     printf("Current:  %6.3f A\r\n",current);
 //     printf("Percent:  %6.1f %%\r\n",P);
 //     printf("\r\n");
-  
+
 //     gpio_put(LED_PIN, 1);
 //     sleep_ms(1000);
 //     gpio_put(LED_PIN, 0);

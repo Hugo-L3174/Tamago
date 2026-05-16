@@ -2,7 +2,7 @@
 #define _PICO_BTSTACK_BTSTACK_CONFIG_H
 
 #ifndef ENABLE_BLE
-#error Please link to pico_btstack_ble
+#  error Please link to pico_btstack_ble
 #endif
 
 // BTstack features that can be enabled
@@ -13,10 +13,10 @@
 
 // for the client
 #if RUNNING_AS_CLIENT
-#define ENABLE_LE_CENTRAL
-#define MAX_NR_GATT_CLIENTS 1
+#  define ENABLE_LE_CENTRAL
+#  define MAX_NR_GATT_CLIENTS 1
 #else
-#define MAX_NR_GATT_CLIENTS 0
+#  define MAX_NR_GATT_CLIENTS 0
 #endif
 
 // BTstack configuration. buffers, sizes, ...
@@ -34,7 +34,7 @@
 
 // Enable and configure HCI Controller to Host Flow Control to avoid cyw43 shared bus overrun
 #define ENABLE_HCI_CONTROLLER_TO_HOST_FLOW_CONTROL
-#define HCI_HOST_ACL_PACKET_LEN (255+4)
+#define HCI_HOST_ACL_PACKET_LEN (255 + 4)
 #define HCI_HOST_ACL_PACKET_NUM 3
 #define HCI_HOST_SCO_PACKET_LEN 120
 #define HCI_HOST_SCO_PACKET_NUM 3

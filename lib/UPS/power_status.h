@@ -10,6 +10,7 @@ The other functions were added after
 
 #ifndef POWER_STATUS_H
 #define POWER_STATUS_H
+#include "stdbool.h"
 
 /*!
  * \brief Get power source
@@ -21,7 +22,7 @@ The other functions were added after
  * \return Zero if the battery status can be determined, an error code otherwise \see pico_error_codes
  */
 
-int power_source(bool *battery_powered);
+int power_source(bool * battery_powered);
 
 /*!
  * \brief Get system voltage
@@ -32,11 +33,10 @@ int power_source(bool *battery_powered);
  * \param voltage Calculated voltage
  * \return Zero if the voltage can be determined, an error code otherwise \see pico_error_codes
  */
-int power_voltage(float *voltage);
+int power_voltage(float * voltage);
 
 // function to power down the hardware and go to dormant mode, then wake up safely
 // see https://ghubcoder.github.io/posts/awaking-the-pico/ which was very useful
 void dormantMode();
-
 
 #endif

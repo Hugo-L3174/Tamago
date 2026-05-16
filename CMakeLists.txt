@@ -15,7 +15,7 @@ project(tamago)
 # initialize the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-add_library(GUI STATIC 
+add_library(GUI STATIC
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font8.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font12.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Fonts/font16.c
@@ -29,7 +29,7 @@ target_include_directories(GUI PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/lib/GUI/
 )
 
-add_library(TamaBoard STATIC 
+add_library(TamaBoard STATIC
     ${CMAKE_CURRENT_LIST_DIR}/lib/Config/DEV_Config.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/OLED/OLED_1in5.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/Buzzer/Buzz.c
@@ -43,14 +43,14 @@ target_include_directories(TamaBoard PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/lib/Buzzer/
     ${CMAKE_CURRENT_LIST_DIR}/lib/UPS/
 )
-                                                                        
+
 target_link_libraries(TamaBoard
-    pico_stdlib 
+    pico_stdlib
     pico_cyw43_arch_none # for battery reading (this gpio is controlled by cyw43) and bluetooth
-    hardware_spi 
-    hardware_pwm 
+    hardware_spi
+    hardware_pwm
     hardware_i2c # i2c optional: was for UPS
-    hardware_adc 
+    hardware_adc
     hardware_sleep
     hardware_clocks
 )
@@ -64,7 +64,7 @@ target_link_libraries(Bluetooth
     pico_btstack_ble # for bluetooth
     pico_btstack_cyw43 # for bluetooth
     pico_cyw43_arch_none # for battery reading (VSYS gpio is controlled by cyw43 on pico_w) and bluetooth
-    TamaBoard 
+    TamaBoard
 )
 
 target_include_directories(Bluetooth PUBLIC
@@ -93,11 +93,11 @@ target_link_libraries(Games
 )
 
 add_executable(tamago
-    tamago.c 
+    tamago.c
 )
 
 # Add pico_stdlib library which aggregates commonly used features
-target_link_libraries(tamago 
+target_link_libraries(tamago
     TamaBoard
     Bluetooth
     GUI

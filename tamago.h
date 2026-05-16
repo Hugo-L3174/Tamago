@@ -1,19 +1,19 @@
+#include "hardware/spi.h"
+#include "pico/binary_info.h"
+#include "pico/stdlib.h"
+#include "pico/time.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include "pico/stdlib.h"
-#include "pico/binary_info.h"
-#include "hardware/spi.h"
-#include "pico/time.h"
 // #include "pico/multicore.h"
 #include "hardware/adc.h"
 #include "pico/cyw43_arch.h"
-//#include "hardware/rtc.h"
+// #include "hardware/rtc.h"
 
 /* Custom hardware libs */
+#include "lib/Buzzer/Buzz.h"
 #include "lib/Config/DEV_Config.h"
 #include "lib/OLED/OLED_1in5.h"
-#include "lib/Buzzer/Buzz.h"
 #include "lib/UPS/Pico_UPS.h"
 #include "lib/UPS/power_status.h"
 
@@ -27,122 +27,175 @@
 /* Games */
 #include "games/dino.h"
 
-
 // total number of possibilities for species (for random selection)
-#define species_nb  2
-
+#define species_nb 2
 
 /****************************************************************
-*      Internal types structs and definitions
-*
-****************************************************************/
+ *      Internal types structs and definitions
+ *
+ ****************************************************************/
 
 // menus options for cursor
-enum mainMenu {none, food, play, wash, heal, comm, bedtime, infos, settings};
-enum foodMenu {junk, drink, foodCancel};
-enum playMenu {hop, playCancel};
-enum washMenu {shower, washCancel};
-enum healMenu {pill, healCancel};
-enum commMenu {broadcast, search, commCancel};
-enum bedtimeMenu {light, bedtimeCancel};
-enum infosMenu {name, age, hunger, happiness, species, infosCancel};
-enum settingsMenu {brightness, settingsCancel};
+enum mainMenu
+{
+  none,
+  food,
+  play,
+  wash,
+  heal,
+  comm,
+  bedtime,
+  infos,
+  settings
+};
+enum foodMenu
+{
+  junk,
+  drink,
+  foodCancel
+};
+enum playMenu
+{
+  hop,
+  playCancel
+};
+enum washMenu
+{
+  shower,
+  washCancel
+};
+enum healMenu
+{
+  pill,
+  healCancel
+};
+enum commMenu
+{
+  broadcast,
+  search,
+  commCancel
+};
+enum bedtimeMenu
+{
+  light,
+  bedtimeCancel
+};
+enum infosMenu
+{
+  name,
+  age,
+  hunger,
+  happiness,
+  species,
+  infosCancel
+};
+enum settingsMenu
+{
+  brightness,
+  settingsCancel
+};
 
 // strings to display to select menu options
-const char *foodOptions[3] = {"Junk food", "Boire", "Retour"};
-const char *playOptions[2] = {"Sauter", "Retour"};
-const char *washOptions[2] = {"Douche", "Retour"};
-const char *healOptions[2] = {"Pilule", "Retour"};
-const char *commOptions[3] = {"Emettre", "Recherche", "Retour"};
-const char *bedtimeOptions[2] = {"Eteindre", "Retour"};
-const char *infoOptions[6] = {"Nom:", "Age:", "Faim:", "Bonheur:", "Espece:", "Retour"};
-const char *settingsOptions[2] = {"Luminosite", "Retour"};
+const char * foodOptions[3] = {"Junk food", "Boire", "Retour"};
+const char * playOptions[2] = {"Sauter", "Retour"};
+const char * washOptions[2] = {"Douche", "Retour"};
+const char * healOptions[2] = {"Pilule", "Retour"};
+const char * commOptions[3] = {"Emettre", "Recherche", "Retour"};
+const char * bedtimeOptions[2] = {"Eteindre", "Retour"};
+const char * infoOptions[6] = {"Nom:", "Age:", "Faim:", "Bonheur:", "Espece:", "Retour"};
+const char * settingsOptions[2] = {"Luminosite", "Retour"};
 
 // possible screens
-enum screens {mainScreen, 
-              foodScreen,
-              playScreen, 
-              washScreen, 
-              healScreen, 
-              commScreen, 
-              bedtimeScreen, 
-              infosScreen, 
-              settingsScreen
-             };
+enum screens
+{
+  mainScreen,
+  foodScreen,
+  playScreen,
+  washScreen,
+  healScreen,
+  commScreen,
+  bedtimeScreen,
+  infosScreen,
+  settingsScreen
+};
 
 #ifndef FRAMENAMES
-#define FRAMENAMES
+#  define FRAMENAMES
 // possible frames for sprites
-enum frames {fronthappyFrame, 
-             frontwavingFrame, 
-             frontmehFrame, 
-             frontawkwardFrame, 
-             goingleftFrame, 
-             leftmouthopenFrame, 
-             goingfrontFrame, 
-             sittinghappyFrame, 
-             sittingmouthopenFrame, 
-             sittingsurprisedFrame
-            };
+enum frames
+{
+  fronthappyFrame,
+  frontwavingFrame,
+  frontmehFrame,
+  frontawkwardFrame,
+  goingleftFrame,
+  leftmouthopenFrame,
+  goingfrontFrame,
+  sittinghappyFrame,
+  sittingmouthopenFrame,
+  sittingsurprisedFrame
+};
 #endif
 
 // sprite structure
-typedef struct{
-    int xOrig;
-    int yOrig;
-    bool goingRight;
-    spriteFramePtr *frames;
-    spriteFramePtr currentFrame;
+typedef struct
+{
+  int xOrig;
+  int yOrig;
+  bool goingRight;
+  spriteFramePtr * frames;
+  spriteFramePtr currentFrame;
 } sprite;
 
 // creature structure
-typedef struct{
-    char name[20];
-    volatile int hunger; // Sould go up as tama becomes hungry
-    int sick;   // Same
-    int age;
-    int happiness;
-    int iq;
-    volatile sprite sprite;
-    char species[20];
+typedef struct
+{
+  char name[20];
+  volatile int hunger; // Sould go up as tama becomes hungry
+  int sick; // Same
+  int age;
+  int happiness;
+  int iq;
+  volatile sprite sprite;
+  char species[20];
 
 } kreatur;
 
 // game internal vars
-typedef struct{
-    volatile enum mainMenu mainCursor;
-    volatile enum foodMenu foodCursor;
-    volatile enum playMenu playCursor;
-    volatile enum washMenu washCursor;
-    volatile enum healMenu healCursor;
-    volatile enum commMenu commCursor;
-    volatile enum bedtimeMenu bedtimeCursor;
-    volatile enum infosMenu infoCursor;
-    volatile enum settingsMenu settingsCursor;
-    volatile enum screens currentScreen;
+typedef struct
+{
+  volatile enum mainMenu mainCursor;
+  volatile enum foodMenu foodCursor;
+  volatile enum playMenu playCursor;
+  volatile enum washMenu washCursor;
+  volatile enum healMenu healCursor;
+  volatile enum commMenu commCursor;
+  volatile enum bedtimeMenu bedtimeCursor;
+  volatile enum infosMenu infoCursor;
+  volatile enum settingsMenu settingsCursor;
+  volatile enum screens currentScreen;
 } game;
 
-
 // basic structure for movement: holds previous and objective coordinates
-typedef struct{
-    int prevX;
-    int prevY;
-    int targetX;
-    int targetY;
+typedef struct
+{
+  int prevX;
+  int prevY;
+  int targetX;
+  int targetY;
 } move;
 
-
 /****************************************************************
-*                   Functions definitions
-*
-****************************************************************/
+ *                   Functions definitions
+ *
+ ****************************************************************/
 
 int OLED_1in5_test(void);
 
 int buzzTest(void);
 
 // init all peripherals (pins, functions, spi communication)
-int hardware_setup(void); 
+int hardware_setup(void);
 
 // Initialize pet variables
 int tama_init(void);
@@ -188,7 +241,7 @@ void RefreshMenu(void);
 
 // Passes array of sprite frames for the food
 // should be blocking function
-void feed(spriteFramePtr *foodSprite, int foodVal);
+void feed(spriteFramePtr * foodSprite, int foodVal);
 void walk(int movX, int movY);
 void idleWalk();
 
@@ -213,12 +266,12 @@ void UserInitRTC();
 void runDino();
 
 /****************************************************************
-*                   Internal global variables
-*
-****************************************************************/
+ *                   Internal global variables
+ *
+ ****************************************************************/
 
 // screen memory pointer
-UBYTE *ScreenImage_;
+UBYTE * ScreenImage_;
 
 // creature instance
 kreatur tama_;
@@ -231,7 +284,7 @@ volatile bool spriteToUpdate_ = false;
 volatile bool iconsToUpdate_ = false;
 volatile bool menuToUpdate_ = false;
 volatile bool cursorToUpdate_ = false;
-volatile int bluetoothMode_ = 0; 
+volatile int bluetoothMode_ = 0;
 volatile bool batteryToUpdate_ = true;
 bool displayToUpdate_ = false;
 bool runningDino_ = false;
@@ -258,77 +311,86 @@ bool lowBattery = false;
 int dinoHighScore_ = 0;
 
 /****************************************************************
-*                   Callback functions
-*
-****************************************************************/
+ *                   Callback functions
+ *
+ ****************************************************************/
 
-bool hunger_callback(struct repeating_timer *t) {
-    tama_.hunger +=1;
-    return true;
+bool hunger_callback(struct repeating_timer * t)
+{
+  tama_.hunger += 1;
+  return true;
 }
 
 // to be called regularly to make the idle sprite animation
-bool spriteMove_callback(struct repeating_timer *t) {
-    idleWalk();
-    return true;
+bool spriteMove_callback(struct repeating_timer * t)
+{
+  idleWalk();
+  return true;
 }
 
-bool pollBatt_callback(struct repeating_timer *t) {
-    batteryToUpdate_ = true;
-    return true;
+bool pollBatt_callback(struct repeating_timer * t)
+{
+  batteryToUpdate_ = true;
+  return true;
 }
 
 // TODO maybe only 1 callback to walk, with user data number of frames to decomp movement
 
 // called by the idle animation : 1st frame
-int64_t walk_1_callback(alarm_id_t id, void *user_data) {
-    // move* movement = (move*)user_data;
-    tama_.sprite.currentFrame = tama_.sprite.frames[leftmouthopenFrame];
-	tama_.sprite.xOrig = movement_.prevX + (movement_.targetX * 1.0/3.0);
-	tama_.sprite.yOrig = movement_.prevY + (movement_.targetY * 1.0/3.0);
-	spriteToUpdate_ = true;
-    return 0;
+int64_t walk_1_callback(alarm_id_t id, void * user_data)
+{
+  // move* movement = (move*)user_data;
+  tama_.sprite.currentFrame = tama_.sprite.frames[leftmouthopenFrame];
+  tama_.sprite.xOrig = movement_.prevX + (movement_.targetX * 1.0 / 3.0);
+  tama_.sprite.yOrig = movement_.prevY + (movement_.targetY * 1.0 / 3.0);
+  spriteToUpdate_ = true;
+  return 0;
 }
 
 // called by the idle animation : 2nd frame
-int64_t walk_2_callback(alarm_id_t id, void *user_data) {
-    tama_.sprite.currentFrame = tama_.sprite.frames[goingleftFrame];
-    tama_.sprite.xOrig = movement_.prevX + (movement_.targetX * 2.0/3.0);
-	tama_.sprite.yOrig = movement_.prevY + (movement_.targetY * 2.0/3.0);
-	spriteToUpdate_ = true;
-    return 0;
+int64_t walk_2_callback(alarm_id_t id, void * user_data)
+{
+  tama_.sprite.currentFrame = tama_.sprite.frames[goingleftFrame];
+  tama_.sprite.xOrig = movement_.prevX + (movement_.targetX * 2.0 / 3.0);
+  tama_.sprite.yOrig = movement_.prevY + (movement_.targetY * 2.0 / 3.0);
+  spriteToUpdate_ = true;
+  return 0;
 }
 
 // called by the idle animation : 3rd frame
-int64_t walk_3_callback(alarm_id_t id, void *user_data) {
-    tama_.sprite.currentFrame = tama_.sprite.frames[leftmouthopenFrame];
-    tama_.sprite.xOrig = movement_.prevX + movement_.targetX;
-	tama_.sprite.yOrig = movement_.prevY + movement_.targetY;
-	spriteToUpdate_ = true;
-    return 0;
+int64_t walk_3_callback(alarm_id_t id, void * user_data)
+{
+  tama_.sprite.currentFrame = tama_.sprite.frames[leftmouthopenFrame];
+  tama_.sprite.xOrig = movement_.prevX + movement_.targetX;
+  tama_.sprite.yOrig = movement_.prevY + movement_.targetY;
+  spriteToUpdate_ = true;
+  return 0;
 }
 
 // called by the idle animation : final frame (stop moving)
-int64_t walk_4_callback(alarm_id_t id, void *user_data) {
-    tama_.sprite.currentFrame = tama_.sprite.frames[fronthappyFrame];
-    spriteToUpdate_ = true;
-    return 0;
+int64_t walk_4_callback(alarm_id_t id, void * user_data)
+{
+  tama_.sprite.currentFrame = tama_.sprite.frames[fronthappyFrame];
+  spriteToUpdate_ = true;
+  return 0;
 }
 
-// TODO find a way to put the games callbacks in games files: need to define debounce function inside but without hardware functions...
-void dinoInputCallback(unsigned int gpio, uint32_t events) 
+// TODO find a way to put the games callbacks in games files: need to define debounce function inside but without
+// hardware functions...
+void dinoInputCallback(unsigned int gpio, uint32_t events)
 {
-    if (debounceTimerPassed(20)){
-        switch (gpio)
-        {
-        case MBUTT:
-            midButtonPressedDino_ = !midButtonPressedDino_;
-            break;
-        case RBUTT:
-            rButtonPressedDino_ = true;
-            break;
-        default:
-            break;
-        }
+  if(debounceTimerPassed(20))
+  {
+    switch(gpio)
+    {
+      case MBUTT:
+        midButtonPressedDino_ = !midButtonPressedDino_;
+        break;
+      case RBUTT:
+        rButtonPressedDino_ = true;
+        break;
+      default:
+        break;
     }
+  }
 }

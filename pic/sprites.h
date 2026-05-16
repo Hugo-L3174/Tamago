@@ -1,10 +1,10 @@
 // Tests
 #include "C4Nar/c1.h"
 #include "C4Nar/farfetchd.h"
-#include "pokemon.h"
 #include "C4Nar/farfetchd_gen3.h"
-#include "monky2.h"
 #include "C4Nar/pascal.h"
+#include "monky2.h"
+#include "pokemon.h"
 
 // Icons sprites
 #include "icons.h"
@@ -24,26 +24,27 @@
 
 // Sprite structure
 // We want to make it an array of pointers (1 pointer per frame, which is an array of unsigned char)
-typedef const unsigned char *spriteFramePtr;
+typedef const unsigned char * spriteFramePtr;
 
-
-spriteFramePtr Duck[] = {can128rgb1, can128rgb2, can128rgb3, can128rgb4, can128rgb5, can128rgb6, 
-                        can128rgb7, can128rgb8, can128rgb9, can128rgb10, can128rgb11, can128rgb13, 
-                        can128rgb14, can128rgb15, can128rgb16, can128rgb17, can128rgb18};
+spriteFramePtr Duck[] = {can128rgb1,  can128rgb2,  can128rgb3,  can128rgb4,  can128rgb5,  can128rgb6,
+                         can128rgb7,  can128rgb8,  can128rgb9,  can128rgb10, can128rgb11, can128rgb13,
+                         can128rgb14, can128rgb15, can128rgb16, can128rgb17, can128rgb18};
 
 // Mametchi sprites are all 38x49 pixels
-spriteFramePtr Mametchi[] = {fronthappy, frontwaving, frontmeh, frontawkward, 
-                        goingleft, leftmouthop, frontdown, sittinghappy, 
-                        sittingmouthop, sittingsurprised};
+spriteFramePtr Mametchi[] = {fronthappy,  frontwaving, frontmeh,     frontawkward,   goingleft,
+                             leftmouthop, frontdown,   sittinghappy, sittingmouthop, sittingsurprised};
 
 // Food sprites with full to 2/3 to 1/3 (for eating animations)
 spriteFramePtr chipsFood[] = {chips, chips2third, chips1third};
 spriteFramePtr medFood[] = {med, med2third, med1third};
 
 // possible species
-enum species {mametchi}; 
+enum species
+{
+  mametchi
+};
 // names (for info)
-const char *tamaSpecies[] = {"Mametchi"};
+const char * tamaSpecies[] = {"Mametchi"};
 
 // array of pointers to all possible sprites
-spriteFramePtr *tamaSprites[] = {Mametchi};
+spriteFramePtr * tamaSprites[] = {Mametchi};
