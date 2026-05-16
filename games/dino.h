@@ -1,32 +1,4 @@
-#include <math.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#ifndef BUTTONS
-#  define BUTTONS
-#  define LBUTT 12
-#  define MBUTT 11
-#  define RBUTT 10
-#endif
-
-#ifndef FRAMENAMES
-#  define FRAMENAMES
-// possible frames for sprites
-enum frames
-{
-  fronthappyFrame,
-  frontwavingFrame,
-  frontmehFrame,
-  frontawkwardFrame,
-  goingleftFrame,
-  leftmouthopenFrame,
-  goingfrontFrame,
-  sittinghappyFrame,
-  sittingmouthopenFrame,
-  sittingsurprisedFrame
-};
-#endif
+#include "games.h"
 
 typedef struct cactus
 {
@@ -53,15 +25,10 @@ typedef struct
 
 dinoGame dinoSetup(uint64_t * randSeed);
 void dinoDraw(dinoGame * game, uint8_t ** screenBuffer, const unsigned char ** spriteFramePtr);
-void dinoLogic(dinoGame * game);
-// buttons logic to be called as GPIO irq callback
-// void dinoInputCallback(unsigned int gpio, uint32_t events);
+void dinoLogic(dinoGame * game, volatile bool * buttonPressed);
 int playDino(uint8_t * screenBuffer,
              const unsigned char ** spriteFramePtr,
              uint64_t * randSeed,
              void (*dispFunction)(uint8_t * screenBuffer),
-             int (*debouceCheck)(),
-             void (*waitFunction)(uint32_t waitTime));
-
-volatile bool midButtonPressedDino_;
-volatile bool rButtonPressedDino_;
+             void (*waitFunction)(uint32_t waitTime),
+             gameInput * input);

@@ -26,6 +26,7 @@
 
 /* Games */
 #include "games/dino.h"
+#include "games/games.h"
 
 // total number of possibilities for species (for random selection)
 #define species_nb 2
@@ -377,6 +378,10 @@ int64_t walk_4_callback(alarm_id_t id, void * user_data)
 
 // TODO find a way to put the games callbacks in games files: need to define debounce function inside but without
 // hardware functions...
+volatile bool gameInputLeft_ = false;
+volatile bool gameInputMid_ = false;
+volatile bool gameInputRight_ = false;
+
 void dinoInputCallback(unsigned int gpio, uint32_t events)
 {
   if(debounceTimerPassed(20))
@@ -384,10 +389,10 @@ void dinoInputCallback(unsigned int gpio, uint32_t events)
     switch(gpio)
     {
       case MBUTT:
-        midButtonPressedDino_ = !midButtonPressedDino_;
+        gameInputMid_ = !gameInputMid_;
         break;
       case RBUTT:
-        rButtonPressedDino_ = true;
+        gameInputRight_ = true;
         break;
       default:
         break;

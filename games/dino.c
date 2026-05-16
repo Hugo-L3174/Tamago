@@ -4,8 +4,6 @@
 dinoGame dinoSetup(uint64_t * randSeed)
 {
   dinoGame Game = {false, 128, 98, 49, 0, 0, 0, false, 0, -0.3, 0, NULL};
-  midButtonPressedDino_ = false;
-  rButtonPressedDino_ = false;
   // init rand seed
   srand(*randSeed);
   return Game;
@@ -44,18 +42,18 @@ void dinoDraw(dinoGame * game, uint8_t ** screenBuffer, const unsigned char ** s
   Paint_DrawNum(44, 110, game->score_, &Font12, 0, 0x8, 0x1);
 }
 
-void dinoLogic(dinoGame * game)
+void dinoLogic(dinoGame * game, volatile bool * buttonPressed)
 {
   // If not during a jump
   if(!game->jumping_)
   {
     // If on the ground and M button pressed, adding jump strength
-    if(midButtonPressedDino_)
+    if(*buttonPressed)
     {
       game->jumpStrength_ += 1;
     }
     // If there is strength and button is not pressed, then it was released and we jump
-    else if(!(game->jumpStrength_ == 0) && !midButtonPressedDino_)
+    else if(!(game->jumpStrength_ == 0) && !*buttonPressed)
     {
       game->velocityZ_ = game->jumpStrength_;
       game->jumpStrength_ = 0;
@@ -165,18 +163,18 @@ int playDino(uint8_t * screenBuffer,
              const unsigned char ** spriteFramePtr,
              uint64_t * randSeed,
              void (*dispFunction)(uint8_t * screenBuffer),
-             int (*debouceCheck)(),
-             void (*waitFunction)(uint32_t waitTime))
+             void (*waitFunction)(uint32_t waitTime),
+             gameInput * input)
 {
   dinoGame game = dinoSetup(randSeed);
 
   // make sure buttons start debounced
-  rButtonPressedDino_ = false;
-  midButtonPressedDino_ = false;
+  *(input->mButton) = false;
+  *(input->rButton) = false;
 
-  while(!(game.gameOver_ || rButtonPressedDino_))
+  while(!(game.gameOver_ || *(input->rButton)))
   {
-    dinoLogic(&game);
+    dinoLogic(&game, input->mButton);
     dinoDraw(&game, &screenBuffer, spriteFramePtr);
     dispFunction(screenBuffer);
   }

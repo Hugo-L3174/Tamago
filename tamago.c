@@ -158,8 +158,9 @@ int debug_dino(void)
 
   uint64_t randSeed = get_absolute_time();
 
+  gameInput dinoInput = {.mButton = &gameInputMid_, .rButton = &gameInputRight_};
   dinoHighScore_ =
-      playDino(ScreenImage_, tama_.sprite.frames, &randSeed, &OLED_1in5_Display, &debounceTimerPassed, &busy_wait_ms);
+      playDino(ScreenImage_, tama_.sprite.frames, &randSeed, &OLED_1in5_Display, &busy_wait_ms, &dinoInput);
 }
 
 int debug_battery(void)
@@ -282,8 +283,8 @@ int debug_bt(void)
   hci_power_control(HCI_POWER_ON);
 
   // btstack_run_loop_execute is only required when using the 'polling' method (e.g. using pico_cyw43_arch_poll
-  // library). This example uses the 'threadsafe background` method, where BT work is handled in a low priority IRQ, so
-  // it is fine to call bt_stack_run_loop_execute() but equally you can continue executing user code.
+  // library). This example uses the 'threadsafe background` method, where BT work is handled in a low priority IRQ,
+  // so it is fine to call bt_stack_run_loop_execute() but equally you can continue executing user code.
 
   // this is only necessary when using polling (which we aren't, but we're showing it is still safe to call in this
   // case) btstack_run_loop_execute();
@@ -684,8 +685,10 @@ void runDino()
 
   uint64_t randSeed = get_absolute_time();
 
+  // Initialize inputs to pass
+  gameInput dinoInput = {.mButton = &gameInputMid_, .rButton = &gameInputRight_};
   int dinoNewScore =
-      playDino(ScreenImage_, tama_.sprite.frames, &randSeed, &OLED_1in5_Display, &debounceTimerPassed, &busy_wait_ms);
+      playDino(ScreenImage_, tama_.sprite.frames, &randSeed, &OLED_1in5_Display, &busy_wait_ms, &dinoInput);
   if(dinoHighScore_ < dinoNewScore)
   {
     dinoHighScore_ = dinoNewScore;
@@ -1191,7 +1194,8 @@ void menu_logic(uint gpio, uint32_t events)
             {
               case junk:
                 cancel_repeating_timer(&spriteMoveTimer_);
-                // TODO check if this is blocking correctly: no action should be possible while animations
+                // TODO check if this is blocking correctly: no action should be possible while
+                // animations
                 feed(chipsFood, 3);
                 game_.currentScreen = mainScreen;
                 game_.foodCursor = 0;
